@@ -1,0 +1,8 @@
+include ':api'
+include ':util'
+include ':microservices:user-service'
+include ':microservices:course-service'
+include ':microservices:rating-service'
+include ':microservices:lecture-service'
+include ':microservices:course-composite-service'
+include ':microservices:purchase-service'
