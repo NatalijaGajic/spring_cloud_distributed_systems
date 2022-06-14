@@ -18,11 +18,11 @@ public class CourseAggregate {
     private double price;
     private List<RatingSummary> ratings;
     private List<LectureSummary> lectures;
-    private String serviceAddress;
+    private ServicesAddresses serviceAddress;
 
     private CourseAggregate(){}
 
-    public CourseAggregate(int courseId, String courseTitle, String courseDetails, String language, Date courseCreatedDate, Date getCourseLastUpdatedDate, double averageRating, int numberOfStudents, double price, List<RatingSummary> ratings, List<LectureSummary> lectures, String serviceAddress) {
+    public CourseAggregate(int courseId, String courseTitle, String courseDetails, String language, Date courseCreatedDate, Date getCourseLastUpdatedDate, double averageRating, int numberOfStudents, double price, List<RatingSummary> ratings, List<LectureSummary> lectures, ServicesAddresses serviceAddress) {
         this.courseId = courseId;
         this.courseTitle = courseTitle;
         this.courseDetails = courseDetails;
@@ -125,11 +125,11 @@ public class CourseAggregate {
         this.lectures = lectures;
     }
 
-    public String getServiceAddress() {
+    public ServicesAddresses getServiceAddress() {
         return serviceAddress;
     }
 
-    public void setServiceAddress(String serviceAddress) {
+    public void setServiceAddress(ServicesAddresses serviceAddress) {
         this.serviceAddress = serviceAddress;
     }
 }

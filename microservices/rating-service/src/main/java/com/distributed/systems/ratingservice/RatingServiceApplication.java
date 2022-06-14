@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-@ComponentScan("com.distributes.systems")
+@ComponentScan("com.distributed.systems")
 public class RatingServiceApplication {
 
 	public static void main(String[] args) {

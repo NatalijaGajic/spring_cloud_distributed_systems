@@ -5,8 +5,8 @@ public class ServicesAddresses {
     private final String crs;
     private final String rat;
     private final String lec;
-    private final String usr;
-    private final String pur;
+    private String usr;
+    private String pur;
 
     public ServicesAddresses(){
         this.crs = null;
@@ -23,6 +23,13 @@ public class ServicesAddresses {
         this.lec = lec;
         this.usr = usr;
         this.pur = pur;
+        this.cmp = cmp;
+    }
+
+    public ServicesAddresses(String crs, String rat, String lec,String cmp) {
+        this.crs = crs;
+        this.rat = rat;
+        this.lec = lec;
         this.cmp = cmp;
     }
 

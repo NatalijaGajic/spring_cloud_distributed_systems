@@ -17,5 +17,5 @@ public interface RatingService {
             value = "/rating",
             produces = "application/json"
     )
-    public List<Rating> getRating(@RequestParam(value = "courseId", required = true) int courseId);
+    public List<Rating> getRatings(@RequestParam(value = "courseId", required = true) int courseId);
 }

@@ -15,6 +15,14 @@ public class Lecture {
 
     }
 
+    public Lecture(int lectureId, int courseId, String lectureTitle, int durationInMinutes, String serviceAddress) {
+        this.lectureId = lectureId;
+        this.courseId = courseId;
+        this.lectureTitle = lectureTitle;
+        this.durationInMinutes = durationInMinutes;
+        this.serviceAddress = serviceAddress;
+    }
+
     public Lecture(int lectureId, int courseId, String lectureTitle, String lectureDetails, int lectureOrder, int durationInMinutes) {
         this.lectureId = lectureId;
         this.courseId = courseId;

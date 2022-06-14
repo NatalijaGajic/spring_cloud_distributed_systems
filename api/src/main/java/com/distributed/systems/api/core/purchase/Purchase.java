@@ -8,18 +8,20 @@ public class Purchase {
     private int courseId;
     private Date purchasedDate;
     private double purchasedPrice;
-
+    private String purchasedPriceCurrency;
     private String serviceAddress;
 
     public Purchase(){}
 
 
-    public Purchase(int purchaseId, int userId, int courseId, Date purchasedDate, double purchasedPrice) {
+    public Purchase(int purchaseId, int userId, int courseId, Date purchasedDate, double purchasedPrice, String purchasedPriceCurrency, String serviceAddress) {
         this.purchaseId = purchaseId;
         this.userId = userId;
         this.courseId = courseId;
         this.purchasedDate = purchasedDate;
         this.purchasedPrice = purchasedPrice;
+        this.purchasedPriceCurrency = purchasedPriceCurrency;
+        this.serviceAddress = serviceAddress;
     }
 
     public int getPurchaseId() {
@@ -68,5 +70,13 @@ public class Purchase {
 
     public void setServiceAddress(String serviceAddress) {
         this.serviceAddress = serviceAddress;
+    }
+
+    public String getPurchasedPriceCurrency() {
+        return purchasedPriceCurrency;
+    }
+
+    public void setPurchasedPriceCurrency(String purchasedPriceCurrency) {
+        this.purchasedPriceCurrency = purchasedPriceCurrency;
     }
 }

@@ -13,12 +13,13 @@ public class Course {
     private double averageRating;
     private int numberOfStudents;
     private double price;
+    private String priceCurrency;
     private String serviceAddress;
 
     public Course(){
     }
 
-    public Course(int courseId, String courseTitle, String courseDetails, String language, Date courseCreatedDate, Date getCourseLastUpdatedDate, double averageRating, int numberOfStudents, double price, String serviceAddress) {
+    public Course(int courseId, String courseTitle, String courseDetails, String language, Date courseCreatedDate, Date getCourseLastUpdatedDate, double averageRating, int numberOfStudents, double price, String serviceAddress, String priceCurrency) {
         this.courseId = courseId;
         this.courseTitle = courseTitle;
         this.courseDetails = courseDetails;
@@ -28,6 +29,15 @@ public class Course {
         this.averageRating = averageRating;
         this.numberOfStudents = numberOfStudents;
         this.price = price;
+        this.serviceAddress = serviceAddress;
+        this.priceCurrency = priceCurrency;
+    }
+
+    public Course(int courseId, String courseTitle, double price, String priceCurrency, String serviceAddress) {
+        this.courseId = courseId;
+        this.courseTitle = courseTitle;
+        this.price = price;
+        this.priceCurrency = priceCurrency;
         this.serviceAddress = serviceAddress;
     }
 
@@ -106,8 +116,15 @@ public class Course {
     public String getServiceAddress() {
         return serviceAddress;
     }
-
     public void setServiceAddress(String serviceAddress) {
         this.serviceAddress = serviceAddress;
+    }
+
+    public String getPriceCurrency() {
+        return priceCurrency;
+    }
+
+    public void setPriceCurrency(String priceCurrency) {
+        this.priceCurrency = priceCurrency;
     }
 }

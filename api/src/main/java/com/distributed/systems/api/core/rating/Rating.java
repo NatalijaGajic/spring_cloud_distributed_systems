@@ -14,6 +14,15 @@ public class Rating {
 
     public Rating(){}
 
+    public Rating(int ratingId, int courseId, int userId, int starRating, String text, String serviceAddress) {
+        this.ratingId = ratingId;
+        this.courseId = courseId;
+        this.userId = userId;
+        this.starRating = starRating;
+        this.text = text;
+        this.serviceAddress = serviceAddress;
+    }
+
     public Rating(int ratingId, int courseId, int userId, int starRating, String text, Date ratingCreatedDate, String serviceAddress) {
         this.ratingId = ratingId;
         this.courseId = courseId;
