@@ -2,8 +2,10 @@ package com.distributed.systems.ratingservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
+@ComponentScan("com.distributes.systems")
 public class RatingServiceApplication {
 
 	public static void main(String[] args) {
