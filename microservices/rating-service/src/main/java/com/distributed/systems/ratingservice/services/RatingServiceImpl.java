@@ -27,7 +27,7 @@ public class RatingServiceImpl implements RatingService {
 
     @Override
     public List<Rating> getRatings(int courseId) {
-        if(courseId < 0) throw new InvalidInputException("Invalid courseId:"+courseId);
+        if(courseId < 0) throw new InvalidInputException("Invalid courseId: "+courseId);
         if(courseId == 123){
             LOG.debug("No lectures found for courseId: {}", courseId);
             return new ArrayList<>();
