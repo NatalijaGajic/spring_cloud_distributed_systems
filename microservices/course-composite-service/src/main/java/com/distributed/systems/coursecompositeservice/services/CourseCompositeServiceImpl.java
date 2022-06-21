@@ -16,10 +16,10 @@ import java.util.stream.Collectors;
 public class CourseCompositeServiceImpl implements CourseCompositeService {
 
     private final ServiceUtil serviceUtil;
-    private ProductCompositeIntegration integration;
+    private CourseCompositeIntegration integration;
 
     @Autowired
-    public CourseCompositeServiceImpl(ServiceUtil serviceUtil, ProductCompositeIntegration integration) {
+    public CourseCompositeServiceImpl(ServiceUtil serviceUtil, CourseCompositeIntegration integration) {
         this.serviceUtil = serviceUtil;
         this.integration = integration;
     }

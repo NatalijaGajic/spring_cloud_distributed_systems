@@ -16,24 +16,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import reactor.netty.udp.UdpServer;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpMethod.GET;
 
 @Component
-public class ProductCompositeIntegration implements CourseService, LectureService, RatingService, UserService {
+public class CourseCompositeIntegration implements CourseService, LectureService, RatingService, UserService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ProductCompositeIntegration.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CourseCompositeIntegration.class);
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final String courseServiceUrl;
@@ -42,7 +39,7 @@ public class ProductCompositeIntegration implements CourseService, LectureServic
     private final String userServiceUrl;
 
     @Autowired
-    public ProductCompositeIntegration(
+    public CourseCompositeIntegration(
             RestTemplate restTemplate,
             ObjectMapper objectMapper,
 
