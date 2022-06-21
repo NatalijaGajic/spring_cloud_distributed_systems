@@ -13,8 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
+import static org.springframework.http.HttpStatus.*;
 
 @RestControllerAdvice
 public class GlobalControllerExceptionHandler {
@@ -35,9 +34,21 @@ public class GlobalControllerExceptionHandler {
         return createHttpErrorInfo(UNPROCESSABLE_ENTITY, request, ex);
     }
 
+    @ResponseStatus(BAD_REQUEST)
+    @ExceptionHandler(NumberFormatException.class)
+    public @ResponseBody HttpErrorInfo handleNumberFormatException(HttpServletRequest request, Exception ex){
+        return createHttpErrorInfoWithMessage(BAD_REQUEST, request, "Type mismatch");
+    }
+
+    private HttpErrorInfo createHttpErrorInfoWithMessage(HttpStatus httpStatus, HttpServletRequest request, String message){
+        final String path = request.getRequestURI();
+        LOG.debug("Returning HTTP status: {} for path: {}, message: {}", httpStatus, path, message);
+        return new HttpErrorInfo(httpStatus, path, message);
+    }
+
     private HttpErrorInfo createHttpErrorInfo(HttpStatus httpStatus, HttpServletRequest request, Exception ex) {
         //TODO: path
-        final String path = request.getContextPath();
+        final String path = request.getRequestURI();
         final String message = ex.getMessage();
 
         LOG.debug("Returning HTTP status: {} for path: {}, message: {}", httpStatus, path, message);
