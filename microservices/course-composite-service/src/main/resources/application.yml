@@ -1,0 +1,16 @@
+server.port: 7000
+server.error.include-message: always
+
+app:
+  course-service:
+    host: localhost
+    port: 7001
+  lecture-service:
+    host: localhost
+    port: 7002
+  rating-service:
+    host: localhost
+    port: 7004
+  user-service:
+    host: localhost
+    port: 7005
