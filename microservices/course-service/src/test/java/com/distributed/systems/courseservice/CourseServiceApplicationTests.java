@@ -1,6 +1,6 @@
 package com.distributed.systems.courseservice;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,7 +21,7 @@ public class CourseServiceApplicationTests {
 	private WebTestClient client;
 
 	@Test
-	void getCourseById() {
+	public void getCourseById() {
 		int courseId = 1;
 
 		client.get()

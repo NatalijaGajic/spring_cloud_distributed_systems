@@ -9,9 +9,10 @@ import com.distributed.systems.util.exceptions.NotFoundException;
 import org.junit.Before;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -25,7 +26,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment=RANDOM_PORT)
-class CourseCompositeServiceApplicationTests {
+public class CourseCompositeServiceApplicationTests {
 
 	private static final int COURSE_ID_OK = 1;
 	private static final int COURSE_ID_NOT_FOUND = 2;
@@ -37,7 +38,7 @@ class CourseCompositeServiceApplicationTests {
 	@MockBean
 	private CourseCompositeIntegration compositeIntegration;
 
-	@BeforeEach
+	@Before
 	public void setUp() {
 
 		when(compositeIntegration.getCourse(COURSE_ID_OK)).
@@ -51,6 +52,11 @@ class CourseCompositeServiceApplicationTests {
 
 		when(compositeIntegration.getCourse(COURSE_ID_INVALID)).thenThrow(new InvalidInputException("INVALID: " + COURSE_ID_INVALID));
 	}
+
+	@Test
+	public void contextLoads() {
+	}
+
 
 	@Test
 	public void getCourseById() {
@@ -80,6 +86,7 @@ class CourseCompositeServiceApplicationTests {
 				.jsonPath("$.path").isEqualTo("/course-composite/" + COURSE_ID_NOT_FOUND)
 				.jsonPath("$.message").isEqualTo("NOT FOUND: " + COURSE_ID_NOT_FOUND);
 	}
+
 
 	@Test
 	public void getCourseInvalidInput() {

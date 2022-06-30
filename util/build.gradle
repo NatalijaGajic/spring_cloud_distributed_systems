@@ -1,12 +1,26 @@
-plugins {
-	id 'org.springframework.boot' version '2.7.0'
-	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-	id 'java'
+buildscript {
+	ext {
+		springBootVersion = '2.3.2.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
 }
+
+plugins {
+	id "io.spring.dependency-management" version "1.0.9.RELEASE"
+}
+
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
 
 group = 'com.distributed.systems'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '11'
+sourceCompatibility = 1.8
 
 repositories {
 	mavenCentral()
@@ -20,14 +34,6 @@ dependencies {
 	testImplementation 'io.projectreactor:reactor-test'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
-}
-
-bootJar {
-	enabled = false
-}
-
-jar {
-	enabled = true
+dependencyManagement {
+	imports { mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}") }
 }

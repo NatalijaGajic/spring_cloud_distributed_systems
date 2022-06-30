@@ -1,6 +1,6 @@
 package com.distributed.systems.ratingservice;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,7 +14,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment=RANDOM_PORT)
-class RatingServiceApplicationTests {
+public class RatingServiceApplicationTests {
 
 	@Autowired
 	private WebTestClient client;
@@ -44,7 +44,7 @@ class RatingServiceApplicationTests {
 				.expectHeader().contentType(APPLICATION_JSON)
 				.expectBody()
 				.jsonPath("$.path").isEqualTo("/rating")
-				.jsonPath("$.message").isEqualTo("Required request parameter 'courseId' for method parameter type int is not present");
+				.jsonPath("$.message").isEqualTo("Required int parameter 'courseId' is not present");
 	}
 
 	@Test

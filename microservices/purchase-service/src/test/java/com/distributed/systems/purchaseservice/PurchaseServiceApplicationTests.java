@@ -1,6 +1,6 @@
 package com.distributed.systems.purchaseservice;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,12 +15,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
-class PurchaseServiceApplicationTests {
+public class PurchaseServiceApplicationTests {
 
 	@Autowired
 	private WebTestClient client;
 	@Test
-	void getPurchaseById() {
+	public void getPurchaseById() {
 		int purchaseId = 1;
 
 		client.get()
