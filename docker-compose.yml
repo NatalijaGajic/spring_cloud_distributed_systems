@@ -1,0 +1,48 @@
+version: '2.1'
+
+services:
+  course:
+    build: microservices/course-service
+    mem_limit: 350m
+    environment:
+       - SPRING_PROFILES_ACTIVE=docker
+    
+    
+  lecture:
+    build: microservices/lecture-service
+    mem_limit: 350m
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+            
+    
+  rating:
+    build: microservices/rating-service
+    mem_limit: 350m
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+            
+            
+    
+  user:
+    build: microservices/user-service
+    mem_limit: 350m
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+            
+            
+            
+  purchase:
+    build: microservices/purchase-service
+    mem_limit: 350m
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+            
+            
+            
+  course-composite:
+    build: microservices/course-composite-service
+    mem_limit: 350m
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker

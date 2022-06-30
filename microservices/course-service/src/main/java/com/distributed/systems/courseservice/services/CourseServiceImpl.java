@@ -23,6 +23,7 @@ public class CourseServiceImpl implements CourseService{
 
     @Override
     public Course getCourse(int courseId) {
+        LOG.info("/course return the found course with courseId={}", courseId);
         LOG.debug("/course return the found course with courseId={}", courseId);
         if(courseId < 1) throw new InvalidInputException("Invalid courseId: "+courseId);
         if(courseId == 13) throw  new NotFoundException("No course with id: "+courseId);

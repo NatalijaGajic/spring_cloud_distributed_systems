@@ -14,3 +14,23 @@ app:
   user-service:
     host: localhost
     port: 7005
+    
+
+---
+spring.profiles: docker
+
+server.port: 8080
+
+app:
+  course-service:
+    host: course
+    port: 8080
+  lecture-service:
+    host: lecture
+    port: 8080
+  rating-service:
+    host: rating
+    port: 8080
+  user-service:
+    host: user
+    port: 8080
