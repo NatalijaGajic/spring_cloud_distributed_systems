@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
@@ -42,7 +41,7 @@ public class CourseCompositeServiceApplication {
 
 		return new Docket(SWAGGER_2)
 				.select()
-				.apis(basePackage("se.magnus.microservices.composite.product"))
+				.apis(basePackage("com.distributed.systems.coursecompositeservice.service"))
 				.paths(PathSelectors.any())
 				.build()
 				.globalResponseMessage(GET, emptyList())
