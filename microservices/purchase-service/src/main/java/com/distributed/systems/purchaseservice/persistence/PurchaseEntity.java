@@ -27,6 +27,12 @@ public class PurchaseEntity {
 
     public PurchaseEntity(){}
 
+    public PurchaseEntity(int purchaseId, int userId, int courseId, double purchasedPrice) {
+        this.purchaseId = purchaseId;
+        this.userId = userId;
+        this.courseId = courseId;
+        this.purchasedPrice = purchasedPrice;
+    }
 
     public PurchaseEntity(int purchaseId, int userId, int courseId, Date purchasedDate, double purchasedPrice, String purchasedPriceCurrency, String serviceAddress) {
         this.purchaseId = purchaseId;
@@ -92,5 +98,21 @@ public class PurchaseEntity {
 
     public void setPurchasedPriceCurrency(String purchasedPriceCurrency) {
         this.purchasedPriceCurrency = purchasedPriceCurrency;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 }

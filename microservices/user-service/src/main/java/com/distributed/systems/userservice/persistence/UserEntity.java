@@ -22,6 +22,11 @@ public class UserEntity {
 
     public UserEntity(){}
 
+    public UserEntity(int userId, String fullName, String email) {
+        this.userId = userId;
+        this.fullName = fullName;
+        this.email = email;
+    }
     public UserEntity(int userId, String fullName, String email, String password, String serviceAddress) {
         this.userId = userId;
         this.fullName = fullName;
@@ -68,5 +73,21 @@ public class UserEntity {
 
     public void setServiceAddress(String serviceAddress) {
         this.serviceAddress = serviceAddress;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 }

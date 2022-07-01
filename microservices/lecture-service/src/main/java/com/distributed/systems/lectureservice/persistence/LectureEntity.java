@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @CompoundIndex(name = "crs-lect-id", unique = true, def = "{'courseId': 1, 'lectureId' : 1}")
 public class LectureEntity {
 
+
     @Id
     private String id;
 
@@ -100,5 +101,22 @@ public class LectureEntity {
 
     public void setServiceAddress(String serviceAddress) {
         this.serviceAddress = serviceAddress;
+    }
+
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 }
