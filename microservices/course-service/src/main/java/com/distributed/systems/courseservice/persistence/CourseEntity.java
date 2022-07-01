@@ -30,6 +30,12 @@ public class CourseEntity {
     public CourseEntity(){
     }
 
+    public CourseEntity(int courseId, String courseTitle, double price){
+        this.price = price;
+        this.courseId = courseId;
+        this.courseTitle = courseTitle;
+    }
+
     public CourseEntity(int courseId, String courseTitle, String courseDetails, String language, Date courseCreatedDate, Date getCourseLastUpdatedDate, double averageRating, int numberOfStudents, double price, String serviceAddress, String priceCurrency) {
         this.courseId = courseId;
         this.courseTitle = courseTitle;
@@ -137,5 +143,21 @@ public class CourseEntity {
 
     public void setPriceCurrency(String priceCurrency) {
         this.priceCurrency = priceCurrency;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 }

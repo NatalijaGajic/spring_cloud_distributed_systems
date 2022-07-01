@@ -7,6 +7,7 @@ import java.util.Date;
 @Table(name = "ratings", indexes = {@Index(name = "ratings_unique_id", unique = true, columnList = "courseId,ratingId")})
 public class RatingEntity {
 
+
     @Id @GeneratedValue
     private int id;
 
@@ -22,6 +23,15 @@ public class RatingEntity {
     private String serviceAddress;
 
     public RatingEntity(){}
+
+    public RatingEntity(int ratingId, int courseId, int userId, int starRating, String text) {
+        this.ratingId = ratingId;
+        this.courseId = courseId;
+        this.userId = userId;
+        this.starRating = starRating;
+        this.text = text;
+        this.serviceAddress = serviceAddress;
+    }
 
     public RatingEntity(int ratingId, int courseId, int userId, int starRating, String text, String serviceAddress) {
         this.ratingId = ratingId;
@@ -97,4 +107,21 @@ public class RatingEntity {
     public void setServiceAddress(String serviceAddress) {
         this.serviceAddress = serviceAddress;
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
 }
