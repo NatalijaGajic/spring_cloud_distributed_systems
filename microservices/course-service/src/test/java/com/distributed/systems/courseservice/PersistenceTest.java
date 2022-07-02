@@ -12,6 +12,7 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
@@ -22,10 +23,12 @@ import static java.util.stream.IntStream.rangeClosed;
 import static org.junit.Assert.*;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 
+
+
 @RunWith(SpringRunner.class)
 @DataMongoTest
 public class PersistenceTest {
-    @Autowired
+  @Autowired
     private CourseRepository repository;
 
     private CourseEntity savedEntity;
@@ -68,8 +71,8 @@ public class PersistenceTest {
         assertFalse(repository.existsById(savedEntity.getId()));
     }
 
-    @Test
-    public void getByProductId() {
+   @Test
+    public void getByCourseId() {
         Optional<CourseEntity> entity = repository.findByCourseId(savedEntity.getCourseId());
 
         assertTrue(entity.isPresent());
@@ -77,7 +80,7 @@ public class PersistenceTest {
     }
 
     //TODO: not throwing DuplicateKeyException
-    /*@Test(expected = DuplicateKeyException.class)
+  /*@Test(expected = DuplicateKeyException.class)
     public void duplicateError() {
         CourseEntity entity = new CourseEntity(savedEntity.getCourseId(), "n", 1);
         repository.save(entity);
@@ -139,4 +142,5 @@ public class PersistenceTest {
         assertEquals(expectedEntity.getCourseTitle(),           actualEntity.getCourseTitle());
         assertEquals(expectedEntity.getPrice(),           actualEntity.getPrice(), 0);
     }
+
 }

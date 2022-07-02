@@ -21,6 +21,11 @@ public class CourseServiceApplicationTests {
 	private WebTestClient client;
 
 	@Test
+	public void contextLoads() {
+	}
+
+
+	@Test
 	public void getCourseById() {
 		int courseId = 1;
 
