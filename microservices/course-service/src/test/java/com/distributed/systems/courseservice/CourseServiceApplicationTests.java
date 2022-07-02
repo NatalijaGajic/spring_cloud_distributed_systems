@@ -20,10 +20,6 @@ public class CourseServiceApplicationTests {
 	@Autowired
 	private WebTestClient client;
 
-	@Test
-	public void contextLoads() {
-	}
-
 
 	@Test
 	public void getCourseById() {
