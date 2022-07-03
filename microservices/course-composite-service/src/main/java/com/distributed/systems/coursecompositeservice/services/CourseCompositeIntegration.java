@@ -136,6 +136,11 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     }
 
     @Override
+    public User createUser(User body) {
+        return null;
+    }
+
+    @Override
     public User getUser(int userId) {
         try{
             String url = courseServiceUrl + userId;
@@ -157,6 +162,11 @@ public class CourseCompositeIntegration implements CourseService, LectureService
             }
 
         }
+    }
+
+    @Override
+    public void deleteUser(int userId) {
+
     }
 
     private String getErrorMessage(HttpClientErrorException ex){
