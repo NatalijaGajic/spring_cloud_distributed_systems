@@ -62,6 +62,11 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     }
 
     @Override
+    public Course createProduct(Course body) {
+        return null;
+    }
+
+    @Override
     public Course getCourse(int courseId) {
         try{
             String url = courseServiceUrl + courseId;
@@ -83,6 +88,11 @@ public class CourseCompositeIntegration implements CourseService, LectureService
             }
 
         }
+    }
+
+    @Override
+    public void deleteCourse(int courseId) {
+
     }
 
     @Override

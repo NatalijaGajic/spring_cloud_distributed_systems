@@ -41,6 +41,12 @@ public class Course {
         this.serviceAddress = serviceAddress;
     }
 
+    public Course(int courseId, String courseTitle, double price, String priceCurrency) {
+        this.courseId = courseId;
+        this.courseTitle = courseTitle;
+        this.price = price;
+        this.priceCurrency = priceCurrency;
+    }
     public int getCourseId() {
         return courseId;
     }
