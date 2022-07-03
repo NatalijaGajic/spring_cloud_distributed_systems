@@ -96,6 +96,11 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     }
 
     @Override
+    public Lecture createLecture(Lecture body) {
+        return null;
+    }
+
+    @Override
     public List<Lecture> getLectures(int courseId) {
         try{
             String url = lectureServiceUrl + courseId;
@@ -108,6 +113,11 @@ public class CourseCompositeIntegration implements CourseService, LectureService
             LOG.warn("Got an exception while requesting lectures, return zero lectures: {}", ex.getMessage());
             return new ArrayList<>();
         }
+    }
+
+    @Override
+    public void deleteLectures(int courseId) {
+
     }
 
     @Override

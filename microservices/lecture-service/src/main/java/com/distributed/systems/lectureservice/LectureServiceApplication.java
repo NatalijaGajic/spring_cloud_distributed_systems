@@ -9,7 +9,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication(exclude = SecurityAutoConfiguration.class)
-@ComponentScan("com.distributed.systems")
+@ComponentScan("com.distributed.systems.*")
 public class LectureServiceApplication {
 
 	private static final Logger LOG = LoggerFactory.getLogger(LectureServiceApplication.class);

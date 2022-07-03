@@ -4,7 +4,7 @@ server.error.include-message: always
 spring.data.mongodb:
   host: localhost
   port: 27017
-  database: db-course
+  database: lecture-db
 
 logging:
   level:
@@ -14,6 +14,4 @@ logging:
 
 ---
 spring.profiles: docker
-
-
 server.port: 8080
