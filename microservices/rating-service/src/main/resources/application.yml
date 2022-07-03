@@ -1,7 +1,13 @@
 server.port: 7004
 server.error.include-message: always
 
+# Strongly recommend to set this property to "none" in a production environment!
+spring.jpa.hibernate.ddl-auto: update
 
+spring.datasource:
+  url: jdbc:mysql://localhost/rating-db
+  username: root
+  password: mysql
 ---
 spring.profiles: docker
 
