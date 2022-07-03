@@ -62,7 +62,7 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     }
 
     @Override
-    public Course createProduct(Course body) {
+    public Course createCourse(Course body) {
         return null;
     }
 
@@ -121,6 +121,11 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     }
 
     @Override
+    public Rating createRating(Rating body) {
+        return null;
+    }
+
+    @Override
     public List<Rating> getRatings(int courseId) {
         try{
             String url = ratingServiceUrl + courseId;
@@ -133,6 +138,11 @@ public class CourseCompositeIntegration implements CourseService, LectureService
             LOG.warn("Got an exception while requesting ratings, return zero ratings: {}", ex.getMessage());
             return new ArrayList<>();
         }
+    }
+
+    @Override
+    public void deleteRatings(int courseId) {
+
     }
 
     @Override

@@ -30,7 +30,7 @@ public class CourseServiceImpl implements CourseService{
     }
 
     @Override
-    public Course createProduct(Course body) {
+    public Course createCourse(Course body) {
        try{
            CourseEntity entity = mapper.apiToEntity(body);
            CourseEntity newEntity = repository.save(entity);

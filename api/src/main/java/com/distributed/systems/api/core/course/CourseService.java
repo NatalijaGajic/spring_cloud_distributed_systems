@@ -19,7 +19,7 @@ public interface CourseService {
             value    = "/course",
             consumes = "application/json",
             produces = "application/json")
-    Course createProduct(@RequestBody Course body);
+    Course createCourse(@RequestBody Course body);
 
     /**
      *
