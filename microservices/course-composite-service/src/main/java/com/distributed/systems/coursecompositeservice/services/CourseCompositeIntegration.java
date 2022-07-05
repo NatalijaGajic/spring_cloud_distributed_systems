@@ -127,7 +127,7 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     @Override
     public List<Lecture> getLectures(int courseId) {
         try{
-            String url = lectureServiceUrl + courseId;
+            String url = lectureServiceUrl + "?courseId=" +courseId;
             LOG.debug("Will call getLectures API on URL: {}", url);
             List<Lecture> lectures = restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<Lecture>>(){}).getBody();
             LOG.debug("Found {} lectures for a course with id: {}", lectures.size(), courseId);
@@ -172,7 +172,7 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     @Override
     public List<Rating> getRatings(int courseId) {
         try{
-            String url = ratingServiceUrl + courseId;
+            String url = ratingServiceUrl + "?courseId=" + courseId;
             LOG.debug("Will call getRatings API on URL: {}", url);
             List<Rating> ratings = restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<Rating>>(){}).getBody();
             LOG.debug("Found {} ratings for a course with id: {}", ratings.size(), courseId);
