@@ -55,49 +55,73 @@ public class CourseCompositeIntegration implements CourseService, LectureService
 
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
-        this.courseServiceUrl = "http://" + courseServiceHost + ":" + courseServicePort + "/course/";
-        this.lectureServiceUrl = "http://" + lectureServiceHost + ":" + lectureServicePort + "/lecture?courseId=";;
-        this.ratingServiceUrl = "http://" + ratingServiceHost + ":" + ratingServicePort + "/rating?courseId=";;
-        this.userServiceUrl = "http://" + userServiceHost + ":" + userServicePort + "/user/";;
+        this.courseServiceUrl = "http://" + courseServiceHost + ":" + courseServicePort + "/course";
+        this.lectureServiceUrl = "http://" + lectureServiceHost + ":" + lectureServicePort + "/lecture";;
+        this.ratingServiceUrl = "http://" + ratingServiceHost + ":" + ratingServicePort + "/rating";
+        this.userServiceUrl = "http://" + userServiceHost + ":" + userServicePort + "/user";;
     }
 
     @Override
     public Course createCourse(Course body) {
-        return null;
+
+        try {
+            String url = courseServiceUrl;
+            LOG.debug("Will post a new course to URL: {}", url);
+
+            Course course = restTemplate.postForObject(url, body, Course.class);
+            LOG.debug("Created a course with id: {}", course.getCourseId());
+
+            return course;
+
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        }
     }
 
     @Override
     public Course getCourse(int courseId) {
-        try{
-            String url = courseServiceUrl + courseId;
-            LOG.debug("Will call getCourse API on URL: {}", url);
-           Course course = restTemplate.getForObject(url, Course.class);
+        try {
+            String url = courseServiceUrl + "/" + courseId;
+            LOG.debug("Will call the getCourse API on URL: {}", url);
+
+            Course course = restTemplate.getForObject(url, Course.class);
             LOG.debug("Found a course with id: {}", course.getCourseId());
+
             return course;
 
-        }catch(HttpClientErrorException ex){
-            switch (ex.getStatusCode()){
-                case NOT_FOUND:
-                    throw new NotFoundException((getErrorMessage(ex)));
-                case UNPROCESSABLE_ENTITY:
-                    throw new InvalidInputException(getErrorMessage(ex));
-                default:
-                    LOG.warn("Got a unexpected HTTP error: {}, will rethrow it", ex.getStatusCode());
-                    LOG.warn("Error body: {}", ex.getResponseBodyAsString());
-                    throw ex;
-            }
-
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
         }
     }
 
     @Override
     public void deleteCourse(int courseId) {
+        try {
+            String url = courseServiceUrl + "/" + courseId;
+            LOG.debug("Will call the deleteCourse API on URL: {}", url);
 
+            restTemplate.delete(url);
+
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        }
     }
 
     @Override
     public Lecture createLecture(Lecture body) {
-        return null;
+
+        try {
+            String url = lectureServiceUrl;
+            LOG.debug("Will post a new lecture to URL: {}", url);
+
+            Lecture lecture = restTemplate.postForObject(url, body, Lecture.class);
+            LOG.debug("Created a lecture with id: {}", lecture.getLectureId());
+
+            return lecture;
+
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        }
     }
 
     @Override
@@ -117,12 +141,32 @@ public class CourseCompositeIntegration implements CourseService, LectureService
 
     @Override
     public void deleteLectures(int courseId) {
+        try {
+            String url = lectureServiceUrl + "?courseId=" + courseId;
+            LOG.debug("Will call the deleteLectures API on URL: {}", url);
 
+            restTemplate.delete(url);
+
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        }
     }
 
     @Override
     public Rating createRating(Rating body) {
-        return null;
+
+        try {
+            String url = ratingServiceUrl;
+            LOG.debug("Will post a new rating to URL: {}", url);
+
+            Rating rating = restTemplate.postForObject(url, body, Rating.class);
+            LOG.debug("Created a rating with id: {}", rating.getRatingId());
+
+            return rating;
+
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        }
     }
 
     @Override
@@ -142,7 +186,15 @@ public class CourseCompositeIntegration implements CourseService, LectureService
 
     @Override
     public void deleteRatings(int courseId) {
+        try {
+            String url = ratingServiceUrl + "?courseId=" + courseId;
+            LOG.debug("Will call the deleteRatings API on URL: {}", url);
 
+            restTemplate.delete(url);
+
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        }
     }
 
     @Override
@@ -187,4 +239,19 @@ public class CourseCompositeIntegration implements CourseService, LectureService
         }
     }
 
+    private RuntimeException handleHttpClientException(HttpClientErrorException ex) {
+        switch (ex.getStatusCode()) {
+
+            case NOT_FOUND:
+                return new NotFoundException(getErrorMessage(ex));
+
+            case UNPROCESSABLE_ENTITY :
+                return new InvalidInputException(getErrorMessage(ex));
+
+            default:
+                LOG.warn("Got a unexpected HTTP error: {}, will rethrow it", ex.getStatusCode());
+                LOG.warn("Error body: {}", ex.getResponseBodyAsString());
+                return ex;
+        }
+    }
 }

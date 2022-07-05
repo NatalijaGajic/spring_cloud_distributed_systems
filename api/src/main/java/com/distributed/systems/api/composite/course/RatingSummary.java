@@ -5,16 +5,19 @@ import java.util.Date;
 public class RatingSummary {
 
     private int ratingId;
-    private String userFullName;
+
+
+
+    private int userId;
     private int starRating;
     private String text;
     private Date ratingCreatedDate;
 
     public RatingSummary(){}
 
-    public RatingSummary(int ratingId, String userfullName, int starRating, String text, Date ratingCreatedDate) {
+    public RatingSummary(int ratingId, int userId, int starRating, String text, Date ratingCreatedDate) {
         this.ratingId = ratingId;
-        this.userFullName = userfullName;
+        this.userId = userId;
         this.starRating = starRating;
         this.text = text;
         this.ratingCreatedDate = ratingCreatedDate;
@@ -28,13 +31,7 @@ public class RatingSummary {
         this.ratingId = ratingId;
     }
 
-    public String getUserFullName() {
-        return userFullName;
-    }
 
-    public void setUserFullName(String userFullName) {
-        this.userFullName = userFullName;
-    }
 
     public int getStarRating() {
         return starRating;
@@ -58,5 +55,13 @@ public class RatingSummary {
 
     public void setRatingCreatedDate(Date ratingCreatedDate) {
         this.ratingCreatedDate = ratingCreatedDate;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 }

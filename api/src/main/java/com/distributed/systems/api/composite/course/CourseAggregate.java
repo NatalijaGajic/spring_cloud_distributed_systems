@@ -11,6 +11,8 @@ public class CourseAggregate {
     private String courseTitle;
     private String courseDetails;
     private String language;
+
+    public String priceCurrency;
     private Date courseCreatedDate;
     private Date getCourseLastUpdatedDate;
     private double averageRating;
@@ -35,6 +37,22 @@ public class CourseAggregate {
         this.ratings = ratings;
         this.lectures = lectures;
         this.serviceAddress = serviceAddress;
+    }
+
+    public CourseAggregate(int courseId, String courseTitle, String courseDetails, String language) {
+        this.courseId = courseId;
+        this.courseTitle = courseTitle;
+        this.courseDetails = courseDetails;
+        this.language = language;
+    }
+
+    public CourseAggregate(int courseId, String courseTitle, String courseDetails, String language, List<RatingSummary> ratings, List<LectureSummary> lectures) {
+        this.courseId = courseId;
+        this.courseTitle = courseTitle;
+        this.courseDetails = courseDetails;
+        this.language = language;
+        this.ratings = ratings;
+        this.lectures = lectures;
     }
 
     public int getCourseId() {
@@ -132,4 +150,13 @@ public class CourseAggregate {
     public void setServiceAddress(ServicesAddresses serviceAddress) {
         this.serviceAddress = serviceAddress;
     }
+
+    public String getPriceCurrency() {
+        return priceCurrency;
+    }
+
+    public void setPriceCurrency(String priceCurrency) {
+        this.priceCurrency = priceCurrency;
+    }
+
 }

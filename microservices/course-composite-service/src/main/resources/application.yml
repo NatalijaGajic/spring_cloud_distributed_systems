@@ -16,24 +16,34 @@ api:
   course-composite:
 
     get-composite-course:
-      description: Returns a composite view of the specified course id
+      description: Returns a course view of the specified course id
       notes: |
         # Normal response
         If the requested course id is found the method will return information regarding:
-        1. Base course information
-        1. Lectures
+        1. Course information
         1. Ratings
-        1. Service Addresses\n(technical information regarding the addresses of the microservices that created the response)
+        1. Lectures
+        1. Service Addresses
+        (technical information regarding the addresses of the microservices that created the response)
         # Expected partial and error responses
-        In the following cases, only a partial response be created (used to simplify testing of error conditions)
-        ## Course id 123
-        200 - Ok, but no lectures and no ratings will be returned
-        ## Non numerical course id
-        400 - A <b>Bad Request</b> error will be returned
-        ## Course id 13
-        404 - A <b>Not Found</b> error will be returned
-        ## Negative course ids
-        422 - An <b>Unprocessable Entity</b> error will be returned
+        1. If no course information is found, a <b>404 - Not Found</b> error will be returned
+        1. In no lectures or ratings are found for a course, a partial response will be returned
+
+    create-composite-course:
+      description: Creates a composite course
+      notes: |
+        # Normal response
+        The composite product information posted to the API will be splitted up and stored as separate course-info, lecture and rating entities.
+        # Expected error responses
+        1. If a course with the same courseId as specified in the posted information already exists,
+           an <b>422 - Unprocessable Entity</b> error with a "duplicate key" error message will be returned
+    delete-composite-course:
+      description: Deletes a course composite
+      notes: |
+        # Normal response
+        Entities for course information, lectures and ratings related to the specificed courseId will be deleted.
+        The implementation of the delete method is idempotent, i.e. it can be called several times with the same response.
+        This means that a delete request of a non existing course will return <b>200 Ok</b>.
 
 
 spring.mvc.pathmatch.matching-strategy: ant-path-matcher
