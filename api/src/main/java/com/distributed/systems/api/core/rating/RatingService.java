@@ -2,6 +2,7 @@ package com.distributed.systems.api.core.rating;
 
 import com.distributed.systems.api.core.lecture.Lecture;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -31,7 +32,7 @@ public interface RatingService {
             value = "/rating",
             produces = "application/json"
     )
-    public List<Rating> getRatings(@RequestParam(value = "courseId", required = true) int courseId);
+    public Flux<Rating> getRatings(@RequestParam(value = "courseId", required = true) int courseId);
 
     /**
      * Sample usage:
