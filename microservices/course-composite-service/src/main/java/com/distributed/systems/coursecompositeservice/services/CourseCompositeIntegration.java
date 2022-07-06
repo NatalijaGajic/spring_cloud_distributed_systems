@@ -22,6 +22,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.http.HttpMethod.GET;
+import static reactor.core.publisher.Flux.empty;
 
 @Component
 public class CourseCompositeIntegration implements CourseService, LectureService, RatingService, UserService {
@@ -123,18 +125,14 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     }
 
     @Override
-    public List<Lecture> getLectures(int courseId) {
-        try{
-            String url = lectureServiceUrl + "?courseId=" +courseId;
-            LOG.debug("Will call getLectures API on URL: {}", url);
-            List<Lecture> lectures = restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<Lecture>>(){}).getBody();
-            LOG.debug("Found {} lectures for a course with id: {}", lectures.size(), courseId);
-            return lectures;
+    public Flux<Lecture> getLectures(int courseId) {
 
-        }catch (Exception ex){
-            LOG.warn("Got an exception while requesting lectures, return zero lectures: {}", ex.getMessage());
-            return new ArrayList<>();
-        }
+        String url = lectureServiceUrl + "?courseId=" + courseId;
+
+        LOG.debug("Will call the getLectures API on URL: {}", url);
+
+        // Return an empty result if something goes wrong to make it possible for the composite service to return partial responses
+        return webClient.get().uri(url).retrieve().bodyToFlux(Lecture.class).log().onErrorResume(error -> empty());
     }
 
     @Override

@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -66,7 +67,8 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
         Course course = new Course(1, "title", 80, "$");
         //Course course = integration.getCourse(courseId);
         if(course == null) throw new NotFoundException("No course found for courseId: " + courseId);
-        List<Lecture> lectures = integration.getLectures(courseId);
+        List<Lecture> lectures = new ArrayList<>();
+        //List<Lecture> lectures = integration.getLectures(courseId);
         List<Rating> ratings = integration.getRatings(courseId); //TODO: get fullName for ratings
         LOG.debug("getCourse: aggregate entity found for courseId: {}", courseId);
 

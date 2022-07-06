@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,33 +36,38 @@ public class LectureServiceImpl implements LectureService {
 
     @Override
     public Lecture createLecture(Lecture body) {
-        try {
-            LectureEntity entity = mapper.apiToEntity(body);
-            LectureEntity newEntity = repository.save(entity);
+        if (body.getCourseId() < 1) throw new InvalidInputException("Invalid courseId: " + body.getCourseId());
 
-            LOG.debug("createLecture: created a lecture entity: {}/{}", body.getCourseId(), body.getLectureId());
-            return mapper.entityToApi(newEntity);
+        LectureEntity entity = mapper.apiToEntity(body);
+        Mono<Lecture> newEntity = repository.save(entity)
+                .log()
+                .onErrorMap(
+                        DuplicateKeyException.class,
+                        ex -> new InvalidInputException("Duplicate key, Course Id: " + body.getCourseId() + ", Lecture Id:" + body.getLectureId()))
+                .map(e -> mapper.entityToApi(e));
 
-        } catch (DuplicateKeyException dke) {
-            throw new InvalidInputException("Duplicate key, Course Id: " + body.getCourseId() + ", Lecture Id:" + body.getLectureId());
-        }
+        return newEntity.block();
+
     }
 
     @Override
-    public List<Lecture> getLectures(int courseId) {
-        if(courseId < 1) throw new InvalidInputException("Invalid courseId: "+courseId);
+    public Flux<Lecture> getLectures(int courseId) {
 
-        List<LectureEntity> entityList = repository.findByCourseId(courseId);
-        List<Lecture> list = mapper.entityListToApiList(entityList);
-        list.forEach(e -> e.setServiceAddress(serviceUtil.getServiceAddress()));
+        if (courseId < 1) throw new InvalidInputException("Invalid courseId: " + courseId);
 
-        LOG.debug("/lectures response size: {}", list.size());
-        return list;
+        return repository.findByCourseId(courseId)
+                .log()
+                .map(e -> mapper.entityToApi(e))
+                .map(e -> {e.setServiceAddress(serviceUtil.getServiceAddress()); return e;});
     }
 
     @Override
     public void deleteLectures(int courseId) {
-        LOG.debug("deleteLecture: tries to delete lecture for the course with courseId: {}", courseId);
-        repository.deleteAll(repository.findByCourseId(courseId));
+
+        if (courseId < 1) throw new InvalidInputException("Invalid courseId: " + courseId);
+
+        LOG.debug("deleteLectures: tries to delete lectures for the product with courseId: {}", courseId);
+        repository.deleteAll(repository.findByCourseId(courseId)).block();
+
     }
 }

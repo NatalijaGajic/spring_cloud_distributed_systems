@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.test.context.junit4.SpringRunner;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -26,10 +27,10 @@ public class PersistenceTests {
 
     @Before
     public void setupDb() {
-        repository.deleteAll();
+        repository.deleteAll().block();
 
         LectureEntity entity = new LectureEntity(1, 2, "a", 3, "c");
-        savedEntity = repository.save(entity);
+        savedEntity = repository.save(entity).block();
 
         assertEqualsLecture(entity, savedEntity);
     }
@@ -38,33 +39,33 @@ public class PersistenceTests {
     public void create() {
 
         LectureEntity newEntity = new LectureEntity(1, 3, "a", 3, "c");
-        repository.save(newEntity);
+        repository.save(newEntity).block();
 
-        LectureEntity foundEntity = repository.findById(newEntity.getId()).get();
+        LectureEntity foundEntity = repository.findById(newEntity.getId()).block();
         assertEqualsLecture(newEntity, foundEntity);
 
-        assertEquals(2, repository.count());
+        assertEquals(2, (long)repository.count().block());
     }
 
     @Test
     public void update() {
         savedEntity.setLectureTitle("a2");
-        repository.save(savedEntity);
+        repository.save(savedEntity).block();
 
-        LectureEntity foundEntity = repository.findById(savedEntity.getId()).get();
+        LectureEntity foundEntity = repository.findById(savedEntity.getId()).block();
         assertEquals(1, (long)foundEntity.getVersion());
         assertEquals("a2", foundEntity.getLectureTitle());
     }
 
     @Test
     public void delete() {
-        repository.delete(savedEntity);
-        assertFalse(repository.existsById(savedEntity.getId()));
+        repository.delete(savedEntity).block();
+        assertFalse(repository.existsById(savedEntity.getId()).block());
     }
 
     @Test
     public void getByProductId() {
-        List<LectureEntity> entityList = repository.findByCourseId(savedEntity.getCourseId());
+        List<LectureEntity> entityList = repository.findByCourseId(savedEntity.getCourseId()).collectList().block();
 
         assertThat(entityList, hasSize(1));
         assertEqualsLecture(savedEntity, entityList.get(0));
@@ -81,24 +82,24 @@ public class PersistenceTests {
     public void optimisticLockError() {
 
         // Store the saved entity in two separate entity objects
-        LectureEntity entity1 = repository.findById(savedEntity.getId()).get();
-        LectureEntity entity2 = repository.findById(savedEntity.getId()).get();
+        LectureEntity entity1 = repository.findById(savedEntity.getId()).block();
+        LectureEntity entity2 = repository.findById(savedEntity.getId()).block();
 
         // Update the entity using the first entity object
         entity1.setLectureTitle("a1");
-        repository.save(entity1);
+        repository.save(entity1).block();
 
         //  Update the entity using the second entity object.
         // This should fail since the second entity now holds a old version number, i.e. a Optimistic Lock Error
         try {
             entity2.setLectureTitle("a2");
-            repository.save(entity2);
+            repository.save(entity2).block();
 
             fail("Expected an OptimisticLockingFailureException");
         } catch (OptimisticLockingFailureException e) {}
 
         // Get the updated entity from the database and verify its new sate
-        LectureEntity updatedEntity = repository.findById(savedEntity.getId()).get();
+        LectureEntity updatedEntity = repository.findById(savedEntity.getId()).block();
         assertEquals(1, (int)updatedEntity.getVersion());
         assertEquals("a1", updatedEntity.getLectureTitle());
     }

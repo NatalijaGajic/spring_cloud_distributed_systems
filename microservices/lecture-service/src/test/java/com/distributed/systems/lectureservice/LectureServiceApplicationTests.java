@@ -29,7 +29,7 @@ public class LectureServiceApplicationTests {
 
 	@Before
 	public void setupDb() {
-		repository.deleteAll();
+		repository.deleteAll().block();
 	}
 
 	@Test
@@ -40,12 +40,12 @@ public class LectureServiceApplicationTests {
 		postAndVerifyLecture(courseId, 2, OK);
 		postAndVerifyLecture(courseId, 3, OK);
 
-		assertEquals(3, repository.findByCourseId(courseId).size());
+		assertEquals(3, (long)repository.findByCourseId(courseId).count().block());
 
 		getAndVerifyLecturesByCourseId(courseId, OK)
 				.jsonPath("$.length()").isEqualTo(3)
 				.jsonPath("$[2].courseId").isEqualTo(courseId)
-				.jsonPath("$[2].lectureId").isEqualTo(1);
+				.jsonPath("$[2].lectureId").isEqualTo(3);
 	}
 
 	/*@Test
@@ -74,10 +74,12 @@ public class LectureServiceApplicationTests {
 		int lectureId = 1;
 
 		postAndVerifyLecture(courseId, lectureId, OK);
-		assertEquals(1, repository.findByCourseId(courseId).size());
+		assertEquals(1, (long)repository.findByCourseId(courseId).count().block());
+
 
 		deleteAndVerifyLecturesByCourseId(courseId, OK);
-		assertEquals(0, repository.findByCourseId(courseId).size());
+		assertEquals(0, (long)repository.findByCourseId(courseId).count().block());
+
 
 		deleteAndVerifyLecturesByCourseId(courseId, OK);
 	}
@@ -133,7 +135,7 @@ public class LectureServiceApplicationTests {
 	}
 
 	private WebTestClient.BodyContentSpec postAndVerifyLecture(int courseId, int lectureId, HttpStatus expectedStatus){
-		Lecture recommendation = new Lecture(1, courseId, "Lecture 1", 7, "SA");
+		Lecture recommendation = new Lecture(lectureId, courseId, "Lecture 1", 7, "SA");
 		return client.post()
 				.uri("/lecture")
 				.body(just(recommendation), Lecture.class)
