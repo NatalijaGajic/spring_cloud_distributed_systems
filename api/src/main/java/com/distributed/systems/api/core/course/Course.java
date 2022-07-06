@@ -47,6 +47,13 @@ public class Course {
         this.price = price;
         this.priceCurrency = priceCurrency;
     }
+
+    public Course(int courseId, String courseTitle,String courseDetails, String language) {
+        this.courseId = courseId;
+        this.courseTitle = courseTitle;
+        this.courseDetails = courseDetails;
+        this.language = language;
+    }
     public int getCourseId() {
         return courseId;
     }

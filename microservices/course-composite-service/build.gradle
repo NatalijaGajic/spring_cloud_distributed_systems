@@ -33,8 +33,11 @@ dependencies {
 	implementation project(':util')
 	implementation ('org.springframework.boot:spring-boot-starter-web')
 	implementation ('org.springframework.boot:spring-boot-starter-webflux')
+	implementation('org.springframework.cloud:spring-cloud-starter-stream-rabbit')
+	implementation('org.springframework.cloud:spring-cloud-starter-stream-kafka')
 	implementation('io.springfox:springfox-boot-starter:3.0.0')
 	testImplementation ('org.springframework.boot:spring-boot-starter-test')
+	testImplementation('org.springframework.cloud:spring-cloud-stream-test-support')
 	testImplementation ('io.projectreactor:reactor-test')
 
 

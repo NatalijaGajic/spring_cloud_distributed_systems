@@ -8,6 +8,7 @@ import com.distributed.systems.api.core.rating.Rating;
 import com.distributed.systems.api.core.rating.RatingService;
 import com.distributed.systems.api.core.user.User;
 import com.distributed.systems.api.core.user.UserService;
+import com.distributed.systems.api.event.Event;
 import com.distributed.systems.util.exceptions.InvalidInputException;
 import com.distributed.systems.util.exceptions.NotFoundException;
 import com.distributed.systems.util.http.HttpErrorInfo;
@@ -16,7 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.stream.annotation.Output;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -29,6 +33,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.distributed.systems.api.event.Event.Type.CREATE;
+import static com.distributed.systems.api.event.Event.Type.DELETE;
 import static org.springframework.http.HttpMethod.GET;
 import static reactor.core.publisher.Flux.empty;
 
@@ -44,11 +50,29 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     private final String userServiceUrl;
 
     private final WebClient webClient;
+    private MessageSources messageSources;
+
+    public interface MessageSources {
+
+        String OUTPUT_COURSES= "output-courses";
+        String OUTPUT_LECTURES= "output-lectures";
+        String OUTPUT_RATINGS = "output-ratings";
+
+        @Output(OUTPUT_COURSES)
+        MessageChannel outputCourses();
+
+        @Output(OUTPUT_LECTURES)
+        MessageChannel outputLectures();
+
+        @Output(OUTPUT_RATINGS)
+        MessageChannel outputRatings();
+    }
 
     @Autowired
     public CourseCompositeIntegration(
             RestTemplate restTemplate,
             ObjectMapper objectMapper,
+            MessageSources messageSources,
 
             @Value("${app.course-service.host}") String courseServiceHost,
             @Value("${app.course-service.port}") String courseServicePort,
@@ -62,6 +86,7 @@ public class CourseCompositeIntegration implements CourseService, LectureService
 
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
+        this.messageSources = messageSources;
         this.webClient = webClient.build();
         this.courseServiceUrl = "http://" + courseServiceHost + ":" + courseServicePort + "/course";
         this.lectureServiceUrl = "http://" + lectureServiceHost + ":" + lectureServicePort + "/lecture";;
@@ -71,19 +96,8 @@ public class CourseCompositeIntegration implements CourseService, LectureService
 
     @Override
     public Course createCourse(Course body) {
-
-        try {
-            String url = courseServiceUrl;
-            LOG.debug("Will post a new course to URL: {}", url);
-
-            Course course = restTemplate.postForObject(url, body, Course.class);
-            LOG.debug("Created a course with id: {}", course.getCourseId());
-
-            return course;
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        messageSources.outputCourses().send(MessageBuilder.withPayload(new Event(CREATE, body.getCourseId(), body)).build());
+        return body;
     }
 
     @Override
@@ -96,32 +110,14 @@ public class CourseCompositeIntegration implements CourseService, LectureService
 
     @Override
     public void deleteCourse(int courseId) {
-        try {
-            String url = courseServiceUrl + "/" + courseId;
-            LOG.debug("Will call the deleteCourse API on URL: {}", url);
-
-            restTemplate.delete(url);
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        messageSources.outputCourses().send(MessageBuilder.withPayload(new Event(DELETE, courseId, null)).build());
     }
 
     @Override
     public Lecture createLecture(Lecture body) {
 
-        try {
-            String url = lectureServiceUrl;
-            LOG.debug("Will post a new lecture to URL: {}", url);
-
-            Lecture lecture = restTemplate.postForObject(url, body, Lecture.class);
-            LOG.debug("Created a lecture with id: {}", lecture.getLectureId());
-
-            return lecture;
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        messageSources.outputLectures().send(MessageBuilder.withPayload(new Event(CREATE, body.getCourseId(), body)).build());
+        return body;
     }
 
     @Override
@@ -137,32 +133,14 @@ public class CourseCompositeIntegration implements CourseService, LectureService
 
     @Override
     public void deleteLectures(int courseId) {
-        try {
-            String url = lectureServiceUrl + "?courseId=" + courseId;
-            LOG.debug("Will call the deleteLectures API on URL: {}", url);
-
-            restTemplate.delete(url);
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        messageSources.outputRatings().send(MessageBuilder.withPayload(new Event(DELETE, courseId, null)).build());
     }
 
     @Override
     public Rating createRating(Rating body) {
 
-        try {
-            String url = ratingServiceUrl;
-            LOG.debug("Will post a new rating to URL: {}", url);
-
-            Rating rating = restTemplate.postForObject(url, body, Rating.class);
-            LOG.debug("Created a rating with id: {}", rating.getRatingId());
-
-            return rating;
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        messageSources.outputRatings().send(MessageBuilder.withPayload(new Event(CREATE, body.getCourseId(), body)).build());
+        return body;
     }
 
     @Override
@@ -179,15 +157,7 @@ public class CourseCompositeIntegration implements CourseService, LectureService
 
     @Override
     public void deleteRatings(int courseId) {
-        try {
-            String url = ratingServiceUrl + "?courseId=" + courseId;
-            LOG.debug("Will call the deleteRatings API on URL: {}", url);
-
-            restTemplate.delete(url);
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        messageSources.outputRatings().send(MessageBuilder.withPayload(new Event(DELETE, courseId, null)).build());
     }
 
     @Override
