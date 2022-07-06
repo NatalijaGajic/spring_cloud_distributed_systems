@@ -54,7 +54,7 @@ public class CourseCompositeServiceApplicationTests {
 		when(compositeIntegration.getLectures(COURSE_ID_OK)).
 				thenReturn(Flux.fromIterable(singletonList(new Lecture(1, COURSE_ID_OK, "title", "details", 1, 7))));
 		when(compositeIntegration.getRatings(COURSE_ID_OK)).
-				thenReturn(singletonList(new Rating(1, COURSE_ID_OK, 2, 5, "content", "mock address")));
+				thenReturn(Flux.fromIterable(singletonList(new Rating(1, COURSE_ID_OK, 2, 5, "content", "mock address"))));
 
 		when(compositeIntegration.getCourse(COURSE_ID_NOT_FOUND)).thenThrow(new NotFoundException("NOT FOUND: " + COURSE_ID_NOT_FOUND));
 

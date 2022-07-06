@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 @Api(description = "REST API for compose course information")
 public interface CourseCompositeService {
@@ -49,7 +50,7 @@ public interface CourseCompositeService {
             value ="/course-composite/{courseId}",
             produces = "application/json"
     )
-    public CourseAggregate getCourse(@PathVariable int courseId);
+    public Mono<CourseAggregate> getCourse(@PathVariable int courseId);
 
     /**
      * Sample usage:

@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +26,7 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
     private static final Logger LOG = LoggerFactory.getLogger(CourseCompositeIntegration.class);
 
     @Autowired
-    public CourseCompositeServiceImpl(ServiceUtil serviceUtil, CourseCompositeIntegration integration) {
+    public CourseCompositeServiceImpl(ServiceUtil serviceUtil, CourseCompositeIntegration integration, WebClient webClient) {
         this.serviceUtil = serviceUtil;
         this.integration = integration;
     }
@@ -61,18 +63,17 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
     }
 
     @Override
-    public CourseAggregate getCourse(int courseId) {
-        LOG.debug("getCourse: lookup a course aggregate for courseId: {}", courseId);
-        //TODO: use non-blocking API
-        Course course = new Course(1, "title", 80, "$");
-        //Course course = integration.getCourse(courseId);
-        if(course == null) throw new NotFoundException("No course found for courseId: " + courseId);
-        List<Lecture> lectures = new ArrayList<>();
-        //List<Lecture> lectures = integration.getLectures(courseId);
-        List<Rating> ratings = integration.getRatings(courseId); //TODO: get fullName for ratings
-        LOG.debug("getCourse: aggregate entity found for courseId: {}", courseId);
+    public Mono<CourseAggregate> getCourse(int courseId) {
 
-        return createCourseAggregate(course, lectures, ratings);
+        LOG.debug("getCourse: lookup a course aggregate for courseId: {}", courseId);
+
+        return Mono.zip(
+                        values -> createCourseAggregate((Course) values[0], (List<Lecture>) values[1], (List<Rating>) values[2]),
+                        integration.getCourse(courseId),
+                        integration.getLectures(courseId).collectList(),
+                        integration.getRatings(courseId).collectList())
+                .doOnError(ex -> LOG.warn("getCompositeCourse failed: {}", ex.toString()))
+                .log();
     }
 
     @Override

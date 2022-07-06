@@ -58,11 +58,11 @@ public class CourseCompositeIntegration implements CourseService, LectureService
             @Value("${app.user-service.port}") String userServicePort,
             @Value("${app.rating-service.host}") String ratingServiceHost,
             @Value("${app.rating-service.port}") String ratingServicePort,
-            WebClient webClient) {
+            WebClient.Builder webClient) {
 
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
-        this.webClient = webClient;
+        this.webClient = webClient.build();
         this.courseServiceUrl = "http://" + courseServiceHost + ":" + courseServicePort + "/course";
         this.lectureServiceUrl = "http://" + lectureServiceHost + ":" + lectureServicePort + "/lecture";;
         this.ratingServiceUrl = "http://" + ratingServiceHost + ":" + ratingServicePort + "/rating";
@@ -166,18 +166,15 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     }
 
     @Override
-    public List<Rating> getRatings(int courseId) {
-        try{
-            String url = ratingServiceUrl + "?courseId=" + courseId;
-            LOG.debug("Will call getRatings API on URL: {}", url);
-            List<Rating> ratings = restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<Rating>>(){}).getBody();
-            LOG.debug("Found {} ratings for a course with id: {}", ratings.size(), courseId);
-            return ratings;
+    public Flux<Rating> getRatings(int courseId) {
+        String url = ratingServiceUrl + "?courseId=" + courseId;
 
-        }catch (Exception ex){
-            LOG.warn("Got an exception while requesting ratings, return zero ratings: {}", ex.getMessage());
-            return new ArrayList<>();
-        }
+        LOG.debug("Will call the getRatings API on URL: {}", url);
+
+        // Return an empty result if something goes wrong to make it possible for the composite service to return partial responses
+        return webClient.get().uri(url).retrieve().bodyToFlux(Rating.class).log().onErrorResume(error -> empty());
+
+
     }
 
     @Override
