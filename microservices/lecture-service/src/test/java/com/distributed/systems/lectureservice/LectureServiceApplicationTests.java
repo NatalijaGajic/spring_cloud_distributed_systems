@@ -1,16 +1,23 @@
 package com.distributed.systems.lectureservice;
 
 import com.distributed.systems.api.core.lecture.Lecture;
+import com.distributed.systems.api.core.rating.Rating;
+import com.distributed.systems.api.event.Event;
 import com.distributed.systems.lectureservice.persistence.LectureRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.stream.messaging.Sink;
 import org.springframework.http.HttpStatus;
+import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import static com.distributed.systems.api.event.Event.Type.CREATE;
+import static com.distributed.systems.api.event.Event.Type.DELETE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static reactor.core.publisher.Mono.just;
@@ -18,7 +25,7 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment=RANDOM_PORT, properties = {"spring.data.mongodb.port: 0"})
 public class LectureServiceApplicationTests {
 
 	@Autowired
@@ -27,8 +34,15 @@ public class LectureServiceApplicationTests {
 	@Autowired
 	private LectureRepository repository;
 
+
+	@Autowired
+	private Sink channels;
+
+	private AbstractMessageChannel input = null;
+
 	@Before
 	public void setupDb() {
+		input = (AbstractMessageChannel) channels.input();
 		repository.deleteAll().block();
 	}
 
@@ -36,9 +50,9 @@ public class LectureServiceApplicationTests {
 	public void getLecturesByCourseId() {
 		int courseId = 1;
 
-		postAndVerifyLecture(courseId, 1, OK);
-		postAndVerifyLecture(courseId, 2, OK);
-		postAndVerifyLecture(courseId, 3, OK);
+		sendCreateLectureEvent(courseId, 1);
+		sendCreateLectureEvent(courseId, 2);
+		sendCreateLectureEvent(courseId, 3);
 
 		assertEquals(3, (long)repository.findByCourseId(courseId).count().block());
 
@@ -73,15 +87,15 @@ public class LectureServiceApplicationTests {
 		int courseId = 1;
 		int lectureId = 1;
 
-		postAndVerifyLecture(courseId, lectureId, OK);
+		sendCreateLectureEvent(courseId, lectureId);
 		assertEquals(1, (long)repository.findByCourseId(courseId).count().block());
 
 
-		deleteAndVerifyLecturesByCourseId(courseId, OK);
+		sendDeleteLectureEvent(courseId);
 		assertEquals(0, (long)repository.findByCourseId(courseId).count().block());
 
 
-		deleteAndVerifyLecturesByCourseId(courseId, OK);
+		sendDeleteLectureEvent(courseId);
 	}
 
 
@@ -134,24 +148,15 @@ public class LectureServiceApplicationTests {
 				.expectBody();
 	}
 
-	private WebTestClient.BodyContentSpec postAndVerifyLecture(int courseId, int lectureId, HttpStatus expectedStatus){
-		Lecture recommendation = new Lecture(lectureId, courseId, "Lecture 1", 7, "SA");
-		return client.post()
-				.uri("/lecture")
-				.body(just(recommendation), Lecture.class)
-				.accept(APPLICATION_JSON)
-				.exchange()
-				.expectStatus().isEqualTo(expectedStatus)
-				.expectHeader().contentType(APPLICATION_JSON)
-				.expectBody();
+	private void sendCreateLectureEvent(int courseId, int lectureId) {
+		Lecture lecture = new Lecture(lectureId, courseId, "text", "details", 5, 14);
+		Event<Integer, Lecture> event = new Event(CREATE, courseId, lecture);
+		input.send(new GenericMessage<>(event));
 	}
 
-	private  WebTestClient.BodyContentSpec deleteAndVerifyLecturesByCourseId(int courseId, HttpStatus expectedStatus){
-		return client.delete()
-				.uri("/lecture?courseId=" + courseId)
-				.accept(APPLICATION_JSON)
-				.exchange()
-				.expectStatus().isEqualTo(expectedStatus)
-				.expectBody();
+	private void sendDeleteLectureEvent(int courseId) {
+		Event<Integer, Lecture> event = new Event(DELETE, courseId, null);
+		input.send(new GenericMessage<>(event));
 	}
+
 }

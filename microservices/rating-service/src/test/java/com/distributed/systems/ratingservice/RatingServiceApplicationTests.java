@@ -1,16 +1,22 @@
 package com.distributed.systems.ratingservice;
 
 import com.distributed.systems.api.core.rating.Rating;
+import com.distributed.systems.api.event.Event;
 import com.distributed.systems.ratingservice.persistence.RatingRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.stream.messaging.Sink;
 import org.springframework.http.HttpStatus;
+import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import static com.distributed.systems.api.event.Event.Type.CREATE;
+import static com.distributed.systems.api.event.Event.Type.DELETE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpStatus.*;
@@ -26,10 +32,14 @@ public class RatingServiceApplicationTests {
 
 	@Autowired
 	private RatingRepository repository;
+	@Autowired
+	private Sink channels;
 
+	private AbstractMessageChannel input = null;
 
 	@Before
 	public void setupDb() {
+		input = (AbstractMessageChannel) channels.input();
 		repository.deleteAll();
 	}
 
@@ -39,9 +49,9 @@ public class RatingServiceApplicationTests {
 
 		assertEquals(0, repository.findByCourseId(courseId).size());
 
-		postAndVerifyRating(courseId, 1, OK);
-		postAndVerifyRating(courseId, 2, OK);
-		postAndVerifyRating(courseId, 3, OK);
+		sendCreateRatingEvent(courseId, 1);
+		sendCreateRatingEvent(courseId, 2);
+		sendCreateRatingEvent(courseId, 3);
 
 		assertEquals(3, repository.findByCourseId(courseId).size());
 
@@ -84,6 +94,21 @@ public class RatingServiceApplicationTests {
 				.jsonPath("$.message").isEqualTo("Invalid courseId: " + courseIdInvalid);
 	}
 
+	@Test
+	public void deleteRatings() {
+
+		int courseId = 1;
+		int ratingId = 1;
+
+		sendCreateRatingEvent(courseId, ratingId);
+		assertEquals(1, repository.findByCourseId(courseId).size());
+
+		sendDeleteRatingEvent(courseId);
+		assertEquals(0, repository.findByCourseId(courseId).size());
+
+		sendDeleteRatingEvent(courseId);
+	}
+
 	private WebTestClient.BodyContentSpec getAndVerifyRatingsByCourseId(int courseId, HttpStatus expectedStatus) {
 		return getAndVerifyRatingsByCourseId("?courseId=" + courseId, expectedStatus);
 	}
@@ -98,24 +123,14 @@ public class RatingServiceApplicationTests {
 				.expectBody();
 	}
 
-	private WebTestClient.BodyContentSpec postAndVerifyRating(int courseId, int ratingId, HttpStatus expectedStatus) {
-		Rating rating = new Rating(ratingId, courseId, 5, 4, "Good", "SA");
-		return client.post()
-				.uri("/rating")
-				.body(just(rating), Rating.class)
-				.accept(APPLICATION_JSON)
-				.exchange()
-				.expectStatus().isEqualTo(expectedStatus)
-				.expectHeader().contentType(APPLICATION_JSON)
-				.expectBody();
+	private void sendCreateRatingEvent(int courseId, int ratingId) {
+		Rating rating = new Rating(ratingId, courseId,  "text", 1, 5, null);
+		Event<Integer, Rating> event = new Event(CREATE, courseId, rating);
+		input.send(new GenericMessage<>(event));
 	}
 
-	private WebTestClient.BodyContentSpec deleteAndVerifyReviewsByProductId(int productId, HttpStatus expectedStatus) {
-		return client.delete()
-				.uri("/review?productId=" + productId)
-				.accept(APPLICATION_JSON)
-				.exchange()
-				.expectStatus().isEqualTo(expectedStatus)
-				.expectBody();
+	private void sendDeleteRatingEvent(int courseId) {
+		Event<Integer, Rating> event = new Event(DELETE, courseId, null);
+		input.send(new GenericMessage<>(event));
 	}
 }

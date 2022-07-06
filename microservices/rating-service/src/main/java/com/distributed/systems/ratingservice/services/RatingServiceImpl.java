@@ -83,6 +83,7 @@ public class RatingServiceImpl implements RatingService {
 
     @Override
     public void deleteRatings(int courseId) {
+        if (courseId < 1) throw new InvalidInputException("Invalid courseId: " + courseId);
         LOG.debug("deleteRatings: tries to delete ratings for the course with courseId: {}", courseId);
         repository.deleteAll(repository.findByCourseId(courseId));
     }
