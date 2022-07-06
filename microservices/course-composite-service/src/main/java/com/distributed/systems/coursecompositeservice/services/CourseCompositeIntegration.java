@@ -17,8 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.Output;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
@@ -30,15 +30,13 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.distributed.systems.api.event.Event.Type.CREATE;
 import static com.distributed.systems.api.event.Event.Type.DELETE;
-import static org.springframework.http.HttpMethod.GET;
 import static reactor.core.publisher.Flux.empty;
 
 @Component
+@EnableBinding(CourseCompositeIntegration.MessageSources.class)
 public class CourseCompositeIntegration implements CourseService, LectureService, RatingService, UserService {
 
     private static final Logger LOG = LoggerFactory.getLogger(CourseCompositeIntegration.class);
@@ -133,7 +131,7 @@ public class CourseCompositeIntegration implements CourseService, LectureService
 
     @Override
     public void deleteLectures(int courseId) {
-        messageSources.outputRatings().send(MessageBuilder.withPayload(new Event(DELETE, courseId, null)).build());
+        messageSources.outputLectures().send(MessageBuilder.withPayload(new Event(DELETE, courseId, null)).build());
     }
 
     @Override

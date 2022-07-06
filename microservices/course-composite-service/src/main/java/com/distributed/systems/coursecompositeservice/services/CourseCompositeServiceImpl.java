@@ -4,7 +4,6 @@ import com.distributed.systems.api.composite.course.*;
 import com.distributed.systems.api.core.course.Course;
 import com.distributed.systems.api.core.lecture.Lecture;
 import com.distributed.systems.api.core.rating.Rating;
-import com.distributed.systems.util.exceptions.NotFoundException;
 import com.distributed.systems.util.http.ServiceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +25,7 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
     private static final Logger LOG = LoggerFactory.getLogger(CourseCompositeIntegration.class);
 
     @Autowired
-    public CourseCompositeServiceImpl(ServiceUtil serviceUtil, CourseCompositeIntegration integration, WebClient webClient) {
+    public CourseCompositeServiceImpl(ServiceUtil serviceUtil, CourseCompositeIntegration integration) {
         this.serviceUtil = serviceUtil;
         this.integration = integration;
     }

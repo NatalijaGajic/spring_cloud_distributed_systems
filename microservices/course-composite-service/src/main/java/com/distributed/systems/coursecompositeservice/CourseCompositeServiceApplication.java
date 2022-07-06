@@ -1,5 +1,7 @@
 package com.distributed.systems.coursecompositeservice;
 
+import com.distributed.systems.coursecompositeservice.services.CourseCompositeIntegration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -56,6 +58,9 @@ public class CourseCompositeServiceApplication {
 						emptyList()
 				));
 	}
+
+	@Autowired
+	CourseCompositeIntegration integration;
 
 	@Bean
 	RestTemplate restTemplate() {

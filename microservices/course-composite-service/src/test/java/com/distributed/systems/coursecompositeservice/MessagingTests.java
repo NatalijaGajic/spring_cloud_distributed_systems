@@ -86,7 +86,7 @@ public class MessagingTests {
     public void createCompositeCourse2() {
 
         CourseAggregate composite = new CourseAggregate(1, "title", "details", "eng",
-                singletonList(new RatingSummary(1, 2, 3, "text", null)),
+                singletonList(new RatingSummary(1, 1, 2, 3, "text", null)),
                 singletonList(new LectureSummary(1, 1, "title", "details", 1, 7)));
 
         postAndVerifyCourse(composite, OK);
@@ -108,7 +108,7 @@ public class MessagingTests {
         assertEquals(1, queueRatings.size());
 
         RatingSummary rat = composite.getRatings().get(0);
-        Event<Integer, Course> expectedRatingEvent = new Event(CREATE, composite.getCourseId(), new Rating(rat.getRatingId(), rat.getUserId(), rat.getStarRating(), rat.getText(), rat.getRatingCreatedDate()));
+        Event<Integer, Course> expectedRatingEvent = new Event(CREATE, composite.getCourseId(), new Rating(rat.getRatingId(), rat.getCourseId(),  rat.getText(), rat.getUserId(), rat.getStarRating(), rat.getRatingCreatedDate()));
         assertThat(queueRatings, receivesPayloadThat(sameEventExceptCreatedAt(expectedRatingEvent)));
     }
 

@@ -7,6 +7,7 @@ public class RatingSummary {
     private int ratingId;
 
 
+    private int courseId;
 
     private int userId;
     private int starRating;
@@ -16,6 +17,15 @@ public class RatingSummary {
     public RatingSummary(){}
 
     public RatingSummary(int ratingId, int userId, int starRating, String text, Date ratingCreatedDate) {
+        this.ratingId = ratingId;
+        this.userId = userId;
+        this.starRating = starRating;
+        this.text = text;
+        this.ratingCreatedDate = ratingCreatedDate;
+    }
+
+    public RatingSummary(int ratingId, int courseId, int userId, int starRating, String text, Date ratingCreatedDate) {
+        this.courseId = courseId;
         this.ratingId = ratingId;
         this.userId = userId;
         this.starRating = starRating;
@@ -63,5 +73,14 @@ public class RatingSummary {
 
     public void setUserId(int userId) {
         this.userId = userId;
+    }
+
+
+    public int getCourseId() {
+        return courseId;
+    }
+
+    public void setCourseId(int courseId) {
+        this.courseId = courseId;
     }
 }
