@@ -12,6 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
+
+import static reactor.core.publisher.Mono.error;
 
 @RestController
 public class CourseServiceImpl implements CourseService{
@@ -31,36 +34,39 @@ public class CourseServiceImpl implements CourseService{
 
     @Override
     public Course createCourse(Course body) {
-       try{
-           CourseEntity entity = mapper.apiToEntity(body);
-           CourseEntity newEntity = repository.save(entity);
+        if (body.getCourseId() < 1) throw new InvalidInputException("Invalid courseId: " + body.getCourseId());
 
-           LOG.debug("createCourse: entity created for courseId: {}", body.getCourseId());
-           return mapper.entityToApi(newEntity);
+        CourseEntity entity = mapper.apiToEntity(body);
+        Mono<Course> newEntity = repository.save(entity)
+                .log()
+                .onErrorMap(
+                        DuplicateKeyException.class,
+                        ex -> new InvalidInputException("Duplicate key, Course Id: " + body.getCourseId()))
+                .map(e -> mapper.entityToApi(e));
 
-       }catch (DuplicateKeyException dk){
-           throw new InvalidInputException("Duplicate key, Course Id: " + body.getCourseId());
-       }
+        return newEntity.block();
     }
 
     @Override
-    public Course getCourse(int courseId) {
-        if(courseId < 1) throw new InvalidInputException("Invalid courseId: "+courseId);
+    public Mono<Course> getCourse(int courseId) {
 
-        CourseEntity entity = repository.findByCourseId(courseId)
-                        .orElseThrow(() -> new NotFoundException("No course found for courseId: " + courseId));
-        Course response = mapper.entityToApi(entity);
-        response.setServiceAddress(serviceUtil.getServiceAddress());
+        if (courseId < 1) throw new InvalidInputException("Invalid courseId: " + courseId);
 
-        LOG.debug("getCourse: found courseId: {}", courseId);
-        return response;
-
+        return repository.findByCourseId(courseId)
+                .switchIfEmpty(error(new NotFoundException("No course found for courseId: " + courseId)))
+                .log()
+                .map(e -> mapper.entityToApi(e))
+                .map(e -> {e.setServiceAddress(serviceUtil.getServiceAddress()); return e;});
 
     }
 
     @Override
     public void deleteCourse(int courseId) {
+
+        if (courseId < 1) throw new InvalidInputException("Invalid courseId: " + courseId);
+
         LOG.debug("deleteCourse: tries to delete an entity with courseId: {}", courseId);
-        repository.findByCourseId(courseId).ifPresent(e -> repository.delete(e));
+        repository.findByCourseId(courseId).log().map(e -> repository.delete(e)).flatMap(e -> e).block();
+
     }
 }

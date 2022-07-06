@@ -8,7 +8,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -30,7 +29,8 @@ public class CourseServiceApplicationTests {
 
 	@Before
 	public void setupDb() {
-		repository.deleteAll();
+
+		repository.deleteAll().block();
 	}
 
 	@Test
@@ -38,7 +38,7 @@ public class CourseServiceApplicationTests {
 		int courseId = 1;
 
 		postAndVerifyCourse(courseId, OK);
-		assertTrue(repository.findByCourseId(courseId).isPresent());
+		assertNotNull(repository.findByCourseId(courseId).block());
 
 		getAndVerifyCourse(String.valueOf(courseId), OK)
 				.jsonPath("$.courseId").isEqualTo(courseId);
@@ -64,10 +64,10 @@ public class CourseServiceApplicationTests {
 		int courseId = 1;
 
 		postAndVerifyCourse(courseId, OK);
-		assertTrue(repository.findByCourseId(courseId).isPresent());
+		assertNotNull(repository.findByCourseId(courseId).block());
 
 		deleteAndVerifyCourse(courseId, OK);
-		assertFalse(repository.findByCourseId(courseId).isPresent());
+		assertNull(repository.findByCourseId(courseId).block());
 
 		deleteAndVerifyCourse(courseId, OK);
 	}

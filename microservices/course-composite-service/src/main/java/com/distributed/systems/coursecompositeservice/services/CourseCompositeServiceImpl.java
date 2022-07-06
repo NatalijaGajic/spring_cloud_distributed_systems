@@ -62,7 +62,9 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
     @Override
     public CourseAggregate getCourse(int courseId) {
         LOG.debug("getCourse: lookup a course aggregate for courseId: {}", courseId);
-        Course course = integration.getCourse(courseId);
+        //TODO: use non-blocking API
+        Course course = new Course(1, "title", 80, "$");
+        //Course course = integration.getCourse(courseId);
         if(course == null) throw new NotFoundException("No course found for courseId: " + courseId);
         List<Lecture> lectures = integration.getLectures(courseId);
         List<Rating> ratings = integration.getRatings(courseId); //TODO: get fullName for ratings

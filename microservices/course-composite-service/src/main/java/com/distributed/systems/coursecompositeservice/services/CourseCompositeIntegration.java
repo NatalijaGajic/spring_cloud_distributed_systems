@@ -20,6 +20,9 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,6 +41,8 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     private final String ratingServiceUrl;
     private final String userServiceUrl;
 
+    private final WebClient webClient;
+
     @Autowired
     public CourseCompositeIntegration(
             RestTemplate restTemplate,
@@ -50,11 +55,12 @@ public class CourseCompositeIntegration implements CourseService, LectureService
             @Value("${app.user-service.host}") String userServiceHost,
             @Value("${app.user-service.port}") String userServicePort,
             @Value("${app.rating-service.host}") String ratingServiceHost,
-            @Value("${app.rating-service.port}") String ratingServicePort
-    ) {
+            @Value("${app.rating-service.port}") String ratingServicePort,
+            WebClient webClient) {
 
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
+        this.webClient = webClient;
         this.courseServiceUrl = "http://" + courseServiceHost + ":" + courseServicePort + "/course";
         this.lectureServiceUrl = "http://" + lectureServiceHost + ":" + lectureServicePort + "/lecture";;
         this.ratingServiceUrl = "http://" + ratingServiceHost + ":" + ratingServicePort + "/rating";
@@ -79,19 +85,11 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     }
 
     @Override
-    public Course getCourse(int courseId) {
-        try {
-            String url = courseServiceUrl + "/" + courseId;
-            LOG.debug("Will call the getCourse API on URL: {}", url);
+    public Mono<Course> getCourse(int courseId) {
+        String url = courseServiceUrl + "/" + courseId;
+        LOG.debug("Will call the getCourse API on URL: {}", url);
 
-            Course course = restTemplate.getForObject(url, Course.class);
-            LOG.debug("Found a course with id: {}", course.getCourseId());
-
-            return course;
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        return webClient.get().uri(url).retrieve().bodyToMono(Course.class).log().onErrorMap(WebClientResponseException.class, ex -> handleException(ex));
     }
 
     @Override
@@ -239,6 +237,14 @@ public class CourseCompositeIntegration implements CourseService, LectureService
         }
     }
 
+    private String getErrorMessage(WebClientResponseException ex) {
+        try {
+            return objectMapper.readValue(ex.getResponseBodyAsString(), HttpErrorInfo.class).getMessage();
+        } catch (IOException ioex) {
+            return ex.getMessage();
+        }
+    }
+
     private RuntimeException handleHttpClientException(HttpClientErrorException ex) {
         switch (ex.getStatusCode()) {
 
@@ -251,6 +257,31 @@ public class CourseCompositeIntegration implements CourseService, LectureService
             default:
                 LOG.warn("Got a unexpected HTTP error: {}, will rethrow it", ex.getStatusCode());
                 LOG.warn("Error body: {}", ex.getResponseBodyAsString());
+                return ex;
+        }
+    }
+
+
+    private Throwable handleException(Throwable ex) {
+
+        if (!(ex instanceof WebClientResponseException)) {
+            LOG.warn("Got a unexpected error: {}, will rethrow it", ex.toString());
+            return ex;
+        }
+
+        WebClientResponseException wcre = (WebClientResponseException)ex;
+
+        switch (wcre.getStatusCode()) {
+
+            case NOT_FOUND:
+                return new NotFoundException(getErrorMessage(wcre));
+
+            case UNPROCESSABLE_ENTITY :
+                return new InvalidInputException(getErrorMessage(wcre));
+
+            default:
+                LOG.warn("Got a unexpected HTTP error: {}, will rethrow it", wcre.getStatusCode());
+                LOG.warn("Error body: {}", wcre.getResponseBodyAsString());
                 return ex;
         }
     }

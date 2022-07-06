@@ -1,6 +1,7 @@
 package com.distributed.systems.api.core.course;
 
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 public interface CourseService {
 
@@ -30,7 +31,7 @@ public interface CourseService {
             value = "/course/{courseId}",
             produces = "application/json"
     )
-    public Course getCourse(@PathVariable int courseId);
+    Mono<Course> getCourse(@PathVariable int courseId);
 
     /**
      * Sample usage:

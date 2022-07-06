@@ -22,6 +22,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Mono;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.when;
@@ -48,7 +49,7 @@ public class CourseCompositeServiceApplicationTests {
 	public void setUp() {
 
 		when(compositeIntegration.getCourse(COURSE_ID_OK)).
-				thenReturn(new Course(COURSE_ID_OK, "title", 5, "$", "mock-address"));
+				thenReturn(Mono.just(new Course(COURSE_ID_OK, "title", 5, "$", "mock-address")) );
 		when(compositeIntegration.getLectures(COURSE_ID_OK)).
 				thenReturn(singletonList(new Lecture(1, COURSE_ID_OK, "title", "details", 1, 7)));
 		when(compositeIntegration.getRatings(COURSE_ID_OK)).
