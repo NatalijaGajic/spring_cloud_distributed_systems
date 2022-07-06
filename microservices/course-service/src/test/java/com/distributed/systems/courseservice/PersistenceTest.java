@@ -29,7 +29,7 @@ import static org.springframework.data.domain.Sort.Direction.ASC;
 @RunWith(SpringRunner.class)
 @DataMongoTest
 public class PersistenceTest {
-  @Autowired
+    @Autowired
     private CourseRepository repository;
 
     private CourseEntity savedEntity;
