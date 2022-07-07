@@ -10,6 +10,9 @@
 #
 : ${HOST=localhost}
 : ${PORT=8080}
+: ${CRS_ID_LECS_RATS=1}
+: ${CRS_ID_NOT_FOUND=13}
+: ${PROD_ID_NO_RECS_NO_REVS=123}
 
 function assertCurl() {
 
@@ -82,6 +85,53 @@ function waitForService() {
 	echo "waitForService done"
 }
 
+function testCompositeCreated() {
+
+    # Expect that the Product Composite for productId $PROD_ID_REVS_RECS has been created with three recommendations and three reviews
+    if ! assertCurl 200 "curl http://$HOST:$PORT/course-composite/$CRS_ID_LECS_RATS -s"
+    then
+        echo -n "FAIL"
+        return 1
+    fi
+
+    set +e
+    assertEqual "$CRS_ID_LECS_RATS" $(echo $RESPONSE | jq .courseId)
+    if [ "$?" -eq "1" ] ; then return 1; fi
+
+    assertEqual 3 $(echo $RESPONSE | jq ".lectures | length")
+    if [ "$?" -eq "1" ] ; then return 1; fi
+
+    assertEqual 3 $(echo $RESPONSE | jq ".ratings | length")
+    if [ "$?" -eq "1" ] ; then return 1; fi
+
+    set -e
+}
+
+function waitForMessageProcessing() {
+    echo "Wait for messages to be processed... "
+
+    # Give background processing some time to complete...
+    sleep 1
+
+    n=0
+    until testCompositeCreated
+    do
+        n=$((n + 1))
+        if [[ $n == 40 ]]
+        then
+            echo " Give up"
+            exit 1
+        else
+            sleep 6
+            echo -n ", retry #$n "
+        fi
+    done
+    echo "All messages are now processed!"
+}
+
+
+
+
 
 function recreateComposite() {
     local courseId=$1
@@ -102,11 +152,11 @@ function setupTestdata() {
    {"ratingCreatedDate": "2022-07-05T11:40:37.262Z","ratingId": 14,"starRating": 0,"text": "string","userId": 1},
    {"ratingCreatedDate": "2022-07-05T11:40:37.262Z","ratingId": 15,"starRating": 0,"text": "string","userId": 2}
 ]}'
-    recreateComposite 1 "$body"
+    recreateComposite "$CRS_ID_LECS_RATS" "$body"
 
     body=\
 '{"averageRating": 0,"courseCreatedDate": "2022-07-05T11:40:37.262Z","courseDetails": "string","courseId": 123, "courseTitle": "string","getCourseLastUpdatedDate": "2022-07-05T11:40:37.262Z", "language": "string","numberOfStudents": 0,"price": 0, "priceCurrency": "string"}'
-    recreateComposite 123 "$body"
+    recreateComposite "$PROD_ID_NO_RECS_NO_REVS" "$body"
 
 }
 
@@ -122,15 +172,17 @@ echo "PORT=${PORT}"
 if [[ $@ == *"start"* ]]
 then
     echo "Restarting the test environment..."
-    echo "$ docker-compose down"
-    docker-compose down
+    echo "$ docker-compose down --remove-orphans"
+    docker-compose down --remove-orphans
     echo "$ docker-compose up -d"
     docker-compose up -d
 fi
 
-waitForService curl -X DELETE http://$HOST:$PORT/course-composite/13
+waitForService curl http://$HOST:$PORT/actuator/health
 
 setupTestdata
+
+waitForMessageProcessing
 
 # Verify that a normal request works, expect three lectures and three ratings
 assertCurl 200 "curl http://$HOST:${PORT}/course-composite/1 -s"
@@ -155,11 +207,11 @@ assertEqual "\"Invalid courseId: -1\"" "$(echo $RESPONSE | jq .message)"
 assertCurl 400 "curl http://$HOST:${PORT}/course-composite/invalidCourseId -s"
 assertEqual "\"Type mismatch\"" "$(echo $RESPONSE | jq .message)"
 
+echo "End, all tests OK:" `date`
+
 if [[ $@ == *"stop"* ]]
 then
-    echo "We are done, stopping the test environment..."
-    echo "$ docker-compose down"
-    docker-compose down
+    echo "Stopping the test environment..."
+    echo "$ docker-compose down --remove-orphans"
+    docker-compose down --remove-orphans
 fi
-
-echo "End:" `date`

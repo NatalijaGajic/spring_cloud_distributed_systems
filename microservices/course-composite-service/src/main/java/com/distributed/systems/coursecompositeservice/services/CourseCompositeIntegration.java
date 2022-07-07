@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.health.Health;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.Output;
 import org.springframework.messaging.MessageChannel;
@@ -45,6 +46,10 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     private final String courseServiceUrl;
     private final String lectureServiceUrl;
     private final String ratingServiceUrl;
+
+    private final String courseServiceUrlAddress;
+    private final String lectureServiceUrlAddress;
+    private final String ratingServiceUrlAddress;
     private final String userServiceUrl;
 
     private final WebClient webClient;
@@ -87,9 +92,12 @@ public class CourseCompositeIntegration implements CourseService, LectureService
         this.messageSources = messageSources;
         this.webClient = webClient.build();
         this.courseServiceUrl = "http://" + courseServiceHost + ":" + courseServicePort + "/course";
-        this.lectureServiceUrl = "http://" + lectureServiceHost + ":" + lectureServicePort + "/lecture";;
+        this.lectureServiceUrl = "http://" + lectureServiceHost + ":" + lectureServicePort + "/lecture";
         this.ratingServiceUrl = "http://" + ratingServiceHost + ":" + ratingServicePort + "/rating";
-        this.userServiceUrl = "http://" + userServiceHost + ":" + userServicePort + "/user";;
+        this.userServiceUrl = "http://" + userServiceHost + ":" + userServicePort + "/user";
+        this.courseServiceUrlAddress = "http://" + courseServiceHost + ":" + courseServicePort;
+        this.lectureServiceUrlAddress = "http://" + lectureServiceHost + ":" + lectureServicePort;
+        this.ratingServiceUrlAddress = "http://" + ratingServiceHost + ":" + ratingServicePort;
     }
 
     @Override
@@ -247,5 +255,26 @@ public class CourseCompositeIntegration implements CourseService, LectureService
                 LOG.warn("Error body: {}", wcre.getResponseBodyAsString());
                 return ex;
         }
+    }
+
+    public Mono<Health> getCourseHealth() {
+        return getHealth(courseServiceUrlAddress);
+    }
+
+    public Mono<Health> getLectureHealth() {
+        return getHealth(lectureServiceUrlAddress);
+    }
+
+    public Mono<Health> getRatingHealth() {
+        return getHealth(ratingServiceUrlAddress);
+    }
+
+    private Mono<Health> getHealth(String url) {
+        url += "/actuator/health";
+        LOG.debug("Will call the Health API on URL: {}", url);
+        return webClient.get().uri(url).retrieve().bodyToMono(String.class)
+                .map(s -> new Health.Builder().up().build())
+                .onErrorResume(ex -> Mono.just(new Health.Builder().down(ex).build()))
+                .log();
     }
 }

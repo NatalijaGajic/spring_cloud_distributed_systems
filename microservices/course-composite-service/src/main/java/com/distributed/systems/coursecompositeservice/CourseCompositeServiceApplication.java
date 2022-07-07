@@ -4,6 +4,7 @@ import com.distributed.systems.coursecompositeservice.services.CourseCompositeIn
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.actuate.health.*;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -12,6 +13,8 @@ import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
 import springfox.documentation.spring.web.plugins.Docket;
+
+import java.util.LinkedHashMap;
 
 import static java.util.Collections.emptyList;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -60,11 +63,25 @@ public class CourseCompositeServiceApplication {
 	}
 
 	@Autowired
+	HealthAggregator healthAggregator;
+	@Autowired
 	CourseCompositeIntegration integration;
 
 	@Bean
 	RestTemplate restTemplate() {
 		return new RestTemplate();
+	}
+
+	@Bean
+	ReactiveHealthIndicator coreServices() {
+
+		ReactiveHealthIndicatorRegistry registry = new DefaultReactiveHealthIndicatorRegistry(new LinkedHashMap<>());
+
+		registry.register("course", () -> integration.getCourseHealth());
+		registry.register("lecture", () -> integration.getLectureHealth());
+		registry.register("rating", () -> integration.getRatingHealth());
+
+		return new CompositeReactiveHealthIndicator(healthAggregator, registry);
 	}
 	public static void main(String[] args) {
 		SpringApplication.run(CourseCompositeServiceApplication.class, args);
