@@ -65,25 +65,11 @@ public class CourseCompositeServiceApplication {
 	}
 
 	@Autowired
-	HealthAggregator healthAggregator;
-	@Autowired
 	CourseCompositeIntegration integration;
 
 	@Bean
 	RestTemplate restTemplate() {
 		return new RestTemplate();
-	}
-
-	@Bean
-	ReactiveHealthIndicator coreServices() {
-
-		ReactiveHealthIndicatorRegistry registry = new DefaultReactiveHealthIndicatorRegistry(new LinkedHashMap<>());
-
-		registry.register("course", () -> integration.getCourseHealth());
-		registry.register("lecture", () -> integration.getLectureHealth());
-		registry.register("rating", () -> integration.getRatingHealth());
-
-		return new CompositeReactiveHealthIndicator(healthAggregator, registry);
 	}
 
 
