@@ -9,7 +9,7 @@
 #   HOST=localhost PORT=7000 ./test-em-all.bash
 #
 : ${HOST=localhost}
-: ${PORT=8080}
+: ${PORT=8443}
 : ${CRS_ID_LECS_RATS=1}
 : ${CRS_ID_NOT_FOUND=13}
 : ${PROD_ID_NO_RECS_NO_REVS=123}
@@ -88,7 +88,7 @@ function waitForService() {
 function testCompositeCreated() {
 
     # Expect that the Product Composite for productId $PROD_ID_REVS_RECS has been created with three recommendations and three reviews
-    if ! assertCurl 200 "curl http://$HOST:$PORT/course-composite/$CRS_ID_LECS_RATS -s"
+    if ! assertCurl 200 "curl -k https://$HOST:$PORT/course-composite/$CRS_ID_LECS_RATS -s"
     then
         echo -n "FAIL"
         return 1
@@ -137,8 +137,8 @@ function recreateComposite() {
     local courseId=$1
     local composite=$2
 
-    assertCurl 200 "curl -X DELETE http://$HOST:$PORT/course-composite/${courseId} -s"
-    curl -X POST http://$HOST:$PORT/course-composite -H "Content-Type: application/json" --data "$composite"
+    assertCurl 200 "curl -X DELETE -k https://$HOST:$PORT/course-composite/${courseId} -s"
+    curl -X POST -k https://$HOST:$PORT/course-composite -H "Content-Type: application/json" --data "$composite"
 }
 
 function setupTestdata() {
@@ -178,33 +178,33 @@ then
     docker-compose up -d
 fi
 
-waitForService curl http://$HOST:$PORT/actuator/health
+waitForService curl -k https://$HOST:$PORT/actuator/health
 
 setupTestdata
 
 waitForMessageProcessing
 
 # Verify that a normal request works, expect three lectures and three ratings
-assertCurl 200 "curl http://$HOST:${PORT}/course-composite/1 -s"
+assertCurl 200 "curl -k https://$HOST:${PORT}/course-composite/1 -s"
 assertEqual 1 $(echo $RESPONSE | jq .courseId)
 assertEqual 3 $(echo $RESPONSE | jq ".lectures | length")
 assertEqual 3 $(echo $RESPONSE | jq ".ratings | length")
 
 # Verify that a 404 (Not Found) error is returned for a non existing courseId (13)
-assertCurl 404 "curl http://$HOST:${PORT}/course-composite/13 -s"
+assertCurl 404 "curl -k https://$HOST:${PORT}/course-composite/13 -s"
 
 # Verify that no lectures and no ratings are returned for courseId 123
-assertCurl 200 "curl http://$HOST:${PORT}/course-composite/123 -s"
+assertCurl 200 "curl -k https://$HOST:${PORT}/course-composite/123 -s"
 assertEqual 123 $(echo $RESPONSE | jq .courseId)
 assertEqual 0 $(echo $RESPONSE | jq ".lectures | length")
 assertEqual 0 $(echo $RESPONSE | jq ".ratings | length")
 
 # Verify that a 422 (Unprocessable Entity) error is returned for a courseId that is out of range (-1)
-assertCurl 422 "curl http://$HOST:${PORT}/course-composite/-1 -s"
+assertCurl 422 "curl -k https://$HOST:${PORT}/course-composite/-1 -s"
 assertEqual "\"Invalid courseId: -1\"" "$(echo $RESPONSE | jq .message)"
 
 # Verify that a 400 (Bad Request) error error is returned for a courseId that is not a number, i.e. invalid format
-assertCurl 400 "curl http://$HOST:${PORT}/course-composite/invalidCourseId -s"
+assertCurl 400 "curl -k https://$HOST:${PORT}/course-composite/invalidCourseId -s"
 assertEqual "\"Type mismatch\"" "$(echo $RESPONSE | jq .message)"
 
 echo "End, all tests OK:" `date`
