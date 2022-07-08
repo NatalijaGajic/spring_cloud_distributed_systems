@@ -19,7 +19,7 @@ import static reactor.core.publisher.Mono.just;
 
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {"spring.data.mongodb.port: 0"})
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {"spring.data.mongodb.port: 0", "eureka.client.enabled=false"})
 public class PurchaseServiceApplicationTests {
 
 	@Autowired
