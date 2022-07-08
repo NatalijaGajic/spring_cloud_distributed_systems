@@ -43,16 +43,13 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     private static final Logger LOG = LoggerFactory.getLogger(CourseCompositeIntegration.class);
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
-    private final String courseServiceUrl;
-    private final String lectureServiceUrl;
-    private final String ratingServiceUrl;
 
-    private final String courseServiceUrlAddress;
-    private final String lectureServiceUrlAddress;
-    private final String ratingServiceUrlAddress;
-    private final String userServiceUrl;
-
-    private final WebClient webClient;
+    //Eureka server finds instances; host:port is replaced with spring.application.name value from app.yml
+    private final String courseServiceUrl = "http://course";
+    private final String lectureServiceUrl = "http://lecture";
+    private final String ratingServiceUrl = "http://rating";
+    private final WebClient.Builder webClientBuilder;
+    private  WebClient webClient;
     private MessageSources messageSources;
 
     public interface MessageSources {
@@ -76,28 +73,13 @@ public class CourseCompositeIntegration implements CourseService, LectureService
             RestTemplate restTemplate,
             ObjectMapper objectMapper,
             MessageSources messageSources,
-
-            @Value("${app.course-service.host}") String courseServiceHost,
-            @Value("${app.course-service.port}") String courseServicePort,
-            @Value("${app.lecture-service.host}") String lectureServiceHost,
-            @Value("${app.lecture-service.port}") String lectureServicePort,
-            @Value("${app.user-service.host}") String userServiceHost,
-            @Value("${app.user-service.port}") String userServicePort,
-            @Value("${app.rating-service.host}") String ratingServiceHost,
-            @Value("${app.rating-service.port}") String ratingServicePort,
-            WebClient.Builder webClient) {
+            WebClient.Builder webClientBuilder) {
 
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.messageSources = messageSources;
-        this.webClient = webClient.build();
-        this.courseServiceUrl = "http://" + courseServiceHost + ":" + courseServicePort + "/course";
-        this.lectureServiceUrl = "http://" + lectureServiceHost + ":" + lectureServicePort + "/lecture";
-        this.ratingServiceUrl = "http://" + ratingServiceHost + ":" + ratingServicePort + "/rating";
-        this.userServiceUrl = "http://" + userServiceHost + ":" + userServicePort + "/user";
-        this.courseServiceUrlAddress = "http://" + courseServiceHost + ":" + courseServicePort;
-        this.lectureServiceUrlAddress = "http://" + lectureServiceHost + ":" + lectureServicePort;
-        this.ratingServiceUrlAddress = "http://" + ratingServiceHost + ":" + ratingServicePort;
+        this.webClientBuilder = webClientBuilder;
+
     }
 
     @Override
@@ -108,10 +90,10 @@ public class CourseCompositeIntegration implements CourseService, LectureService
 
     @Override
     public Mono<Course> getCourse(int courseId) {
-        String url = courseServiceUrl + "/" + courseId;
+        String url = courseServiceUrl + "/course/" + courseId;
         LOG.debug("Will call the getCourse API on URL: {}", url);
 
-        return webClient.get().uri(url).retrieve().bodyToMono(Course.class).log().onErrorMap(WebClientResponseException.class, ex -> handleException(ex));
+        return getWebClient().get().uri(url).retrieve().bodyToMono(Course.class).log().onErrorMap(WebClientResponseException.class, ex -> handleException(ex));
     }
 
     @Override
@@ -129,12 +111,12 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     @Override
     public Flux<Lecture> getLectures(int courseId) {
 
-        String url = lectureServiceUrl + "?courseId=" + courseId;
+        String url = lectureServiceUrl + "/lecture?courseId=" + courseId;
 
         LOG.debug("Will call the getLectures API on URL: {}", url);
 
         // Return an empty result if something goes wrong to make it possible for the composite service to return partial responses
-        return webClient.get().uri(url).retrieve().bodyToFlux(Lecture.class).log().onErrorResume(error -> empty());
+        return getWebClient().get().uri(url).retrieve().bodyToFlux(Lecture.class).log().onErrorResume(error -> empty());
     }
 
     @Override
@@ -151,12 +133,12 @@ public class CourseCompositeIntegration implements CourseService, LectureService
 
     @Override
     public Flux<Rating> getRatings(int courseId) {
-        String url = ratingServiceUrl + "?courseId=" + courseId;
+        String url = ratingServiceUrl + "/rating?courseId=" + courseId;
 
         LOG.debug("Will call the getRatings API on URL: {}", url);
 
         // Return an empty result if something goes wrong to make it possible for the composite service to return partial responses
-        return webClient.get().uri(url).retrieve().bodyToFlux(Rating.class).log().onErrorResume(error -> empty());
+        return getWebClient().get().uri(url).retrieve().bodyToFlux(Rating.class).log().onErrorResume(error -> empty());
 
 
     }
@@ -200,6 +182,13 @@ public class CourseCompositeIntegration implements CourseService, LectureService
 
     }
 
+    private WebClient getWebClient() {
+        if (webClient == null) {
+            webClient = webClientBuilder.build();
+        }
+        return webClient;
+    }
+
     private String getErrorMessage(HttpClientErrorException ex){
         try {
             return objectMapper.readValue(ex.getResponseBodyAsString(), HttpErrorInfo.class).getMessage();
@@ -213,22 +202,6 @@ public class CourseCompositeIntegration implements CourseService, LectureService
             return objectMapper.readValue(ex.getResponseBodyAsString(), HttpErrorInfo.class).getMessage();
         } catch (IOException ioex) {
             return ex.getMessage();
-        }
-    }
-
-    private RuntimeException handleHttpClientException(HttpClientErrorException ex) {
-        switch (ex.getStatusCode()) {
-
-            case NOT_FOUND:
-                return new NotFoundException(getErrorMessage(ex));
-
-            case UNPROCESSABLE_ENTITY :
-                return new InvalidInputException(getErrorMessage(ex));
-
-            default:
-                LOG.warn("Got a unexpected HTTP error: {}, will rethrow it", ex.getStatusCode());
-                LOG.warn("Error body: {}", ex.getResponseBodyAsString());
-                return ex;
         }
     }
 
@@ -258,15 +231,15 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     }
 
     public Mono<Health> getCourseHealth() {
-        return getHealth(courseServiceUrlAddress);
+        return getHealth(courseServiceUrl);
     }
 
     public Mono<Health> getLectureHealth() {
-        return getHealth(lectureServiceUrlAddress);
+        return getHealth(lectureServiceUrl);
     }
 
     public Mono<Health> getRatingHealth() {
-        return getHealth(ratingServiceUrlAddress);
+        return getHealth(ratingServiceUrl);
     }
 
     private Mono<Health> getHealth(String url) {
