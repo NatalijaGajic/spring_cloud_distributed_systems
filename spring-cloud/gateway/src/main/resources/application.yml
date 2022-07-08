@@ -25,6 +25,11 @@ spring.cloud.gateway.routes:
     predicates:
     - Path=/course-composite/**
 
+  - id: oauth-server
+    uri: lb://auth-server
+    predicates:
+      - Path=/oauth/**
+
   - id: eureka-api
     uri: http://${app.eureka-server}:8761
     predicates:

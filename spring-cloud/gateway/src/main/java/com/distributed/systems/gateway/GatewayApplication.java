@@ -9,6 +9,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @SpringBootApplication
 public class GatewayApplication {
 
+	//TODO configure paths for purchase and user service
 	@Bean
 	@LoadBalanced
 	public WebClient.Builder loadBalancedWebClientBuilder() {
