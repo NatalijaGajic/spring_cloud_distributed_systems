@@ -3,7 +3,10 @@ server.port: 8443
 
 spring.application.name: gateway
 
-app.eureka-server: localhost
+app:
+  eureka-username: u
+  eureka-password: p
+  eureka-server: localhost
 
 server.ssl:
   key-store-type: PKCS12
@@ -15,7 +18,7 @@ server.ssl:
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://${app.eureka-server}:8761/eureka/
+      defaultZone: "http://${app.eureka-username}:${app.eureka-password}@${app.eureka-server}:8761/eureka/"
     initialInstanceInfoReplicationIntervalSeconds: 5
     registryFetchIntervalSeconds: 5
   instance:
