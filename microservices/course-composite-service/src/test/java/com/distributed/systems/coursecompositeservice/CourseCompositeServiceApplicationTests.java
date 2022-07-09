@@ -11,15 +11,13 @@ import com.distributed.systems.util.exceptions.InvalidInputException;
 import com.distributed.systems.util.exceptions.NotFoundException;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.junit.Before;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
@@ -33,9 +31,11 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static reactor.core.publisher.Mono.just;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment=RANDOM_PORT, properties = {"eureka.client.enabled=false"})
+@SpringBootTest(webEnvironment=RANDOM_PORT, classes = {CourseCompositeServiceApplication.class, TestSecurityConfig.class },
+		properties = {"spring.main.allow-bean-definition-overriding=true","eureka.client.enabled=false"})
 public class CourseCompositeServiceApplicationTests {
 
+	//TODO: appContext not loaded fail
 	private static final int COURSE_ID_OK = 1;
 	private static final int COURSE_ID_NOT_FOUND = 2;
 	private static final int COURSE_ID_INVALID = 3;
@@ -65,35 +65,7 @@ public class CourseCompositeServiceApplicationTests {
 	public void contextLoads() {
 	}
 
-	@Test
-	public void createCompositeCourse1() {
 
-		CourseAggregate compositeCourse = new CourseAggregate(1, "title", "details", "eng");
-
-		postAndVerifyCourse(compositeCourse, OK);
-	}
-
-
-	@Test
-	public void createCompositeCourse2() {
-		CourseAggregate compositeCourse = new CourseAggregate(1, "title", "details", "eng",
-				singletonList(new RatingSummary(1, 2, 3, "text", null)),
-				singletonList(new LectureSummary(1, 1, "title", "details", 1, 7)));
-
-		postAndVerifyCourse(compositeCourse, OK);
-	}
-
-	@Test
-	public void deleteCompositeCourse() {
-		CourseAggregate compositeCourse = new CourseAggregate(1, "title", "details", "eng",
-				singletonList(new RatingSummary(1, 2, 3, "text", null)),
-				singletonList(new LectureSummary(1, 1, "title", "details", 1, 7)));
-
-		postAndVerifyCourse(compositeCourse, OK);
-
-		deleteAndVerifyCourse(compositeCourse.getCourseId(), OK);
-		deleteAndVerifyCourse(compositeCourse.getCourseId(), OK);
-	}
 
 	@Test
 	public void getCourseById() {
@@ -121,15 +93,6 @@ public class CourseCompositeServiceApplicationTests {
 				.jsonPath("$.message").isEqualTo("INVALID: " + COURSE_ID_INVALID);
 	}
 
-	private void postAndVerifyCourse(CourseAggregate compositeCourse, HttpStatus expectedStatus) {
-		client.post()
-				.uri("/course-composite")
-				.body(just(compositeCourse), CourseAggregate.class)
-				.exchange()
-				.expectStatus().isEqualTo(expectedStatus);
-
-	}
-
 	private WebTestClient.BodyContentSpec getAndVerifyCourse(int courseId, HttpStatus expectedStatus) {
 		return client.get()
 				.uri("/course-composite/" + courseId)
@@ -140,12 +103,5 @@ public class CourseCompositeServiceApplicationTests {
 				.expectBody();
 	}
 
-
-	private void deleteAndVerifyCourse(int courseId, HttpStatus expectedStatus) {
-		client.delete()
-				.uri("/course-composite/" + courseId)
-				.exchange()
-				.expectStatus().isEqualTo(expectedStatus);
-	}
 
 }

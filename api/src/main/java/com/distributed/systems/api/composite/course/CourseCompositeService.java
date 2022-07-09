@@ -29,7 +29,7 @@ public interface CourseCompositeService {
     @PostMapping(
             value    = "/course-composite",
             consumes = "application/json")
-    void createCompositeCourse(@RequestBody CourseAggregate body);
+    Mono<Void>  createCompositeCourse(@RequestBody CourseAggregate body);
 
 
     /**
@@ -67,5 +67,5 @@ public interface CourseCompositeService {
             @ApiResponse(code = 422, message = "Unprocessable entity, input parameters caused the processing to fail. See response message for more information.")
     })
     @DeleteMapping(value = "/course-composite/{courseId}")
-    void deleteCompositeCourse(@PathVariable int courseId);
+    Mono<Void> deleteCompositeCourse(@PathVariable int courseId);
 }

@@ -46,7 +46,7 @@ api:
         This means that a delete request of a non existing course will return <b>200 Ok</b>.
 
 
-spring.mvc.pathmatch.matching-strategy: ant-path-matcher
+
 
 server.port: 7000
 server.error.include-message: always
@@ -57,6 +57,7 @@ app:
   eureka-username: u
   eureka-password: p
   eureka-server: localhost
+  auth-server: localhost
 
 eureka:
   client:
@@ -100,6 +101,9 @@ spring.rabbitmq:
   username: guest
   password: guest
 
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri: http://${app.auth-server}:9999/.well-known/jwks.json
+
+
 logging:
   level:
     root: INFO
@@ -115,6 +119,8 @@ server.port: 8080
 spring.rabbitmq.host: rabbitmq
 
 
-app.eureka-server: eureka
+app:
+  eureka-server: eureka
+  auth-server: auth-server
 
 spring.cloud.stream.kafka.binder.brokers: kafka

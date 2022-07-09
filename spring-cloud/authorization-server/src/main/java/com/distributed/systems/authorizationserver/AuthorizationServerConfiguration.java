@@ -81,7 +81,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
                 .authorizedGrantTypes("code","authorization_code", "implicit","password")
                 .redirectUris("http://my.redirect.uri")
                 .secret("{noop}secret")
-                .scopes("product:read")
+                .scopes("course:read")
                 .accessTokenValiditySeconds(600_000_000)
                 .and()
                 .withClient("writer")

@@ -41,7 +41,6 @@ import static reactor.core.publisher.Flux.empty;
 public class CourseCompositeIntegration implements CourseService, LectureService, RatingService, UserService {
 
     private static final Logger LOG = LoggerFactory.getLogger(CourseCompositeIntegration.class);
-    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
     //Eureka server finds instances; host:port is replaced with spring.application.name value from app.yml
@@ -70,12 +69,10 @@ public class CourseCompositeIntegration implements CourseService, LectureService
 
     @Autowired
     public CourseCompositeIntegration(
-            RestTemplate restTemplate,
             ObjectMapper objectMapper,
             MessageSources messageSources,
             WebClient.Builder webClientBuilder) {
 
-        this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.messageSources = messageSources;
         this.webClientBuilder = webClientBuilder;
@@ -155,7 +152,7 @@ public class CourseCompositeIntegration implements CourseService, LectureService
 
     @Override
     public User getUser(int userId) {
-        try{
+        /*try{
             String url = courseServiceUrl + userId;
             LOG.debug("Will call getUser API on URL: {}", url);
             User user = restTemplate.getForObject(url, User.class);
@@ -174,7 +171,8 @@ public class CourseCompositeIntegration implements CourseService, LectureService
                     throw ex;
             }
 
-        }
+        }*/
+        return null;
     }
 
     @Override
@@ -230,24 +228,5 @@ public class CourseCompositeIntegration implements CourseService, LectureService
         }
     }
 
-    public Mono<Health> getCourseHealth() {
-        return getHealth(courseServiceUrl);
-    }
 
-    public Mono<Health> getLectureHealth() {
-        return getHealth(lectureServiceUrl);
-    }
-
-    public Mono<Health> getRatingHealth() {
-        return getHealth(ratingServiceUrl);
-    }
-
-    private Mono<Health> getHealth(String url) {
-        url += "/actuator/health";
-        LOG.debug("Will call the Health API on URL: {}", url);
-        return webClient.get().uri(url).retrieve().bodyToMono(String.class)
-                .map(s -> new Health.Builder().up().build())
-                .onErrorResume(ex -> Mono.just(new Health.Builder().down(ex).build()))
-                .log();
-    }
 }

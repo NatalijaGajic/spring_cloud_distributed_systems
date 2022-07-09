@@ -5,14 +5,18 @@ import com.distributed.systems.api.core.course.Course;
 import com.distributed.systems.api.core.lecture.Lecture;
 import com.distributed.systems.api.core.rating.Rating;
 import com.distributed.systems.util.http.ServiceUtil;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
+import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,7 +24,9 @@ import java.util.stream.Collectors;
 public class CourseCompositeServiceImpl implements CourseCompositeService {
 
     private final ServiceUtil serviceUtil;
-    private CourseCompositeIntegration integration;
+    private final CourseCompositeIntegration integration;
+
+    private final SecurityContext nullSC = new SecurityContextImpl();
 
     private static final Logger LOG = LoggerFactory.getLogger(CourseCompositeIntegration.class);
 
@@ -31,8 +37,15 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
     }
 
     @Override
-    public void createCompositeCourse(CourseAggregate body) {
+    public Mono<Void> createCompositeCourse(CourseAggregate body) {
+        return ReactiveSecurityContextHolder.getContext().doOnSuccess(sc -> internalCreateCompositeCourse(sc, body)).then();
+    }
+
+    private void internalCreateCompositeCourse(SecurityContext sc, CourseAggregate body) {
+
         try {
+
+            logAuthorizationInfo(sc);
 
             LOG.debug("createCompositeCourse: creates a new composite entity for courseId: {}", body.getCourseId());
 
@@ -56,9 +69,10 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
             LOG.debug("createCompositeCourse: composite entites created for courseId: {}", body.getCourseId());
 
         } catch (RuntimeException re) {
-            LOG.warn("createCompositeCourse failed", re);
+            LOG.warn("createCompositeCourse failed: {}", re.toString());
             throw re;
         }
+
     }
 
     @Override
@@ -67,7 +81,8 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
         LOG.debug("getCourse: lookup a course aggregate for courseId: {}", courseId);
 
         return Mono.zip(
-                        values -> createCourseAggregate((Course) values[0], (List<Lecture>) values[1], (List<Rating>) values[2]),
+                        values -> createCourseAggregate((SecurityContext) values[0], (Course) values[1], (List<Lecture>) values[2], (List<Rating>) values[3]),
+                        ReactiveSecurityContextHolder.getContext().defaultIfEmpty(nullSC),
                         integration.getCourse(courseId),
                         integration.getLectures(courseId).collectList(),
                         integration.getRatings(courseId).collectList())
@@ -76,19 +91,34 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
     }
 
     @Override
-    public void deleteCompositeCourse(int courseId) {
-        LOG.debug("deleteCompositeCourse: Deletes a course aggregate for courseId: {}", courseId);
-
-        integration.deleteCourse(courseId);
-
-        integration.deleteLectures(courseId);
-
-        integration.deleteRatings(courseId);
-
-        LOG.debug("deleteCompositeCourse: aggregate entities deleted for courseId: {}", courseId);
+    public Mono<Void> deleteCompositeCourse(int courseId) {
+        return ReactiveSecurityContextHolder.getContext().doOnSuccess(sc -> internalDeleteCompositeCourse(sc, courseId)).then();
     }
 
-    private CourseAggregate createCourseAggregate(Course course, List<Lecture> lectures, List<Rating> ratings){
+    private void internalDeleteCompositeCourse(SecurityContext sc, int courseId) {
+        try {
+            logAuthorizationInfo(sc);
+
+            LOG.debug("deleteCompositeCourse: Deletes a course aggregate for courseId: {}", courseId);
+
+            integration.deleteCourse(courseId);
+
+            integration.deleteLectures(courseId);
+
+            integration.deleteRatings(courseId);
+
+            LOG.debug("deleteCompositeCourse: aggregate entities deleted for courseId: {}", courseId);
+
+        } catch (RuntimeException re) {
+            LOG.warn("deleteCompositeCourse failed: {}", re.toString());
+            throw re;
+        }
+
+    }
+
+    private CourseAggregate createCourseAggregate(SecurityContext sc, Course course, List<Lecture> lectures, List<Rating> ratings){
+
+        logAuthorizationInfo(sc);
 
         List<RatingSummary> ratingsSummaries = ratings == null? null :
                 ratings.stream().map(r -> new RatingSummary(
@@ -130,5 +160,29 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
         );
     }
 
+    private void logAuthorizationInfo(SecurityContext sc) {
+        if (sc != null && sc.getAuthentication() != null && sc.getAuthentication() instanceof JwtAuthenticationToken) {
+            Jwt jwtToken = ((JwtAuthenticationToken)sc.getAuthentication()).getToken();
+            logAuthorizationInfo(jwtToken);
+        } else {
+            LOG.warn("No JWT based Authentication supplied, running tests are we?");
+        }
+    }
+
+    private void logAuthorizationInfo(Jwt jwt) {
+        if (jwt == null) {
+            LOG.warn("No JWT supplied, running tests are we?");
+        } else {
+            if (LOG.isDebugEnabled()) {
+                URL issuer = jwt.getIssuer();
+                List<String> audience = jwt.getAudience();
+                Object subject = jwt.getClaims().get("sub");
+                Object scopes = jwt.getClaims().get("scope");
+                Object expires = jwt.getClaims().get("exp");
+
+                LOG.debug("Authorization info: Subject: {}, scopes: {}, expires {}: issuer: {}, audience: {}", subject, scopes, expires, issuer, audience);
+            }
+        }
+    }
 
 }

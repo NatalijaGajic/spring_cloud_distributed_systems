@@ -12,7 +12,7 @@
 : ${PORT=8443}
 : ${CRS_ID_LECS_RATS=1}
 : ${CRS_ID_NOT_FOUND=13}
-: ${PROD_ID_NO_RECS_NO_REVS=123}
+: ${CRS_ID_NO_LECS_NO_RATS=123}
 
 function assertCurl() {
 
@@ -87,8 +87,8 @@ function waitForService() {
 
 function testCompositeCreated() {
 
-    # Expect that the Product Composite for productId $PROD_ID_REVS_RECS has been created with three recommendations and three reviews
-    if ! assertCurl 200 "curl -k https://$HOST:$PORT/course-composite/$CRS_ID_LECS_RATS -s"
+    # Expect that the Product Composite for courseId $CRS_ID_LECS_RATS has been created with three lectures and three ratings
+    if ! assertCurl 200 "curl $AUTH -k https://$HOST:$PORT/course-composite/$CRS_ID_LECS_RATS -s"
     then
         echo -n "FAIL"
         return 1
@@ -137,8 +137,8 @@ function recreateComposite() {
     local courseId=$1
     local composite=$2
 
-    assertCurl 200 "curl -X DELETE -k https://$HOST:$PORT/course-composite/${courseId} -s"
-    curl -X POST -k https://$HOST:$PORT/course-composite -H "Content-Type: application/json" --data "$composite"
+    assertCurl 200 "curl $AUTH -X DELETE -k https://$HOST:$PORT/course-composite/${courseId} -s"
+    curl -X POST -k https://$HOST:$PORT/course-composite -H "Content-Type: application/json" -H "Authorization: Bearer $ACCESS_TOKEN" --data "$composite"
 }
 
 function setupTestdata() {
@@ -156,7 +156,7 @@ function setupTestdata() {
 
     body=\
 '{"averageRating": 0,"courseCreatedDate": "2022-07-05T11:40:37.262Z","courseDetails": "string","courseId": 123, "courseTitle": "string","getCourseLastUpdatedDate": "2022-07-05T11:40:37.262Z", "language": "string","numberOfStudents": 0,"price": 0, "priceCurrency": "string"}'
-    recreateComposite "$PROD_ID_NO_RECS_NO_REVS" "$body"
+    recreateComposite "$CRS_ID_NO_LECS_NO_RATS" "$body"
 
 }
 
@@ -180,32 +180,51 @@ fi
 
 waitForService curl -k https://$HOST:$PORT/actuator/health
 
+ACCESS_TOKEN=$(curl -k https://writer:secret@$HOST:$PORT/oauth/token -d grant_type=password -d username=natalija -d password=password -s | jq .access_token -r)
+AUTH="-H \"Authorization: Bearer $ACCESS_TOKEN\""
+
+echo "$AUTH"
+
 setupTestdata
 
 waitForMessageProcessing
 
 # Verify that a normal request works, expect three lectures and three ratings
-assertCurl 200 "curl -k https://$HOST:${PORT}/course-composite/1 -s"
+assertCurl 200 "curl -k https://$HOST:${PORT}/course-composite/1  $AUTH -s"
 assertEqual 1 $(echo $RESPONSE | jq .courseId)
 assertEqual 3 $(echo $RESPONSE | jq ".lectures | length")
 assertEqual 3 $(echo $RESPONSE | jq ".ratings | length")
 
 # Verify that a 404 (Not Found) error is returned for a non existing courseId (13)
-assertCurl 404 "curl -k https://$HOST:${PORT}/course-composite/13 -s"
+assertCurl 404 "curl -k https://$HOST:${PORT}/course-composite/13 $AUTH -s"
 
 # Verify that no lectures and no ratings are returned for courseId 123
-assertCurl 200 "curl -k https://$HOST:${PORT}/course-composite/123 -s"
+assertCurl 200 "curl -k https://$HOST:${PORT}/course-composite/123 $AUTH -s"
 assertEqual 123 $(echo $RESPONSE | jq .courseId)
 assertEqual 0 $(echo $RESPONSE | jq ".lectures | length")
 assertEqual 0 $(echo $RESPONSE | jq ".ratings | length")
 
 # Verify that a 422 (Unprocessable Entity) error is returned for a courseId that is out of range (-1)
-assertCurl 422 "curl -k https://$HOST:${PORT}/course-composite/-1 -s"
+assertCurl 422 "curl -k https://$HOST:${PORT}/course-composite/-1 $AUTH -s"
 assertEqual "\"Invalid courseId: -1\"" "$(echo $RESPONSE | jq .message)"
 
 # Verify that a 400 (Bad Request) error error is returned for a courseId that is not a number, i.e. invalid format
-assertCurl 400 "curl -k https://$HOST:${PORT}/course-composite/invalidCourseId -s"
-assertEqual "\"Type mismatch\"" "$(echo $RESPONSE | jq .message)"
+assertCurl 400 "curl -k https://$HOST:${PORT}/course-composite/invalidCourseId $AUTH -s"
+assertEqual "\"Type mismatch.\"" "$(echo $RESPONSE | jq .message)"
+
+
+# Verify that a request without access token fails on 401, Unauthorized
+assertCurl 401 "curl -k https://$HOST:$PORT/course-composite/$CRS_ID_LECS_RATS -s"
+
+# Verify that the reader - client with only read scope can call the read API but not delete API.
+READER_ACCESS_TOKEN=$(curl -k https://reader:secret@$HOST:$PORT/oauth/token -d grant_type=password -d username=natalija -d password=password -s | jq .access_token -r)
+READER_AUTH="-H \"Authorization: Bearer $READER_ACCESS_TOKEN\""
+
+echo "$READER_AUTH"
+
+assertCurl 200 "curl -k https://$HOST:$PORT/course-composite/$CRS_ID_LECS_RATS $READER_AUTH -s"
+assertCurl 403 "curl -k https://$HOST:$PORT/course-composite/$CRS_ID_LECS_RATS $READER_AUTH -X DELETE -s"
+
 
 echo "End, all tests OK:" `date`
 

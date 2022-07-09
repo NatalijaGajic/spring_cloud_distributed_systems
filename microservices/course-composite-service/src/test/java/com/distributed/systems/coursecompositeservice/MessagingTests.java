@@ -34,8 +34,10 @@ import static org.springframework.http.HttpStatus.OK;
 import static reactor.core.publisher.Mono.just;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment=RANDOM_PORT, properties = {"eureka.client.enabled=false"})
-public class MessagingTests {
+@SpringBootTest(
+        webEnvironment=RANDOM_PORT,
+        classes = {CourseCompositeServiceApplication.class, TestSecurityConfig.class },
+        properties = {"spring.main.allow-bean-definition-overriding=true","eureka.client.enabled=false"})public class MessagingTests {
 
     private static final int COURSE_ID_OK = 1;
     private static final int COURSE_ID_NOT_FOUND = 2;
