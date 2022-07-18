@@ -37,7 +37,8 @@ import static reactor.core.publisher.Mono.just;
 @SpringBootTest(
         webEnvironment=RANDOM_PORT,
         classes = {CourseCompositeServiceApplication.class, TestSecurityConfig.class },
-        properties = {"spring.main.allow-bean-definition-overriding=true","eureka.client.enabled=false"})public class MessagingTests {
+        properties = {"spring.main.allow-bean-definition-overriding=true","eureka.client.enabled=false", "spring.cloud.config.enabled=false"})
+public class MessagingTests {
 
     private static final int COURSE_ID_OK = 1;
     private static final int COURSE_ID_NOT_FOUND = 2;

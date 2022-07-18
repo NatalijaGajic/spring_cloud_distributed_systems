@@ -19,7 +19,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
-@DataJpaTest
+@DataJpaTest(properties = {"spring.cloud.config.enabled=false"})
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 public class PersistenceTests {
     @Autowired

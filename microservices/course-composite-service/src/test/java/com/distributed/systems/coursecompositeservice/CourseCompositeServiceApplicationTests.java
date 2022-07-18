@@ -31,8 +31,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static reactor.core.publisher.Mono.just;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment=RANDOM_PORT, classes = {CourseCompositeServiceApplication.class, TestSecurityConfig.class },
-		properties = {"spring.main.allow-bean-definition-overriding=true","eureka.client.enabled=false"})
+@SpringBootTest(
+		webEnvironment=RANDOM_PORT,
+		classes = {CourseCompositeServiceApplication.class, TestSecurityConfig.class },
+		properties = {"spring.main.allow-bean-definition-overriding=true","eureka.client.enabled=false","spring.cloud.config.enabled=false"})
 public class CourseCompositeServiceApplicationTests {
 
 	//TODO: appContext not loaded fail

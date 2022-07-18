@@ -27,7 +27,7 @@ import static org.springframework.data.domain.Sort.Direction.ASC;
 
 
 @RunWith(SpringRunner.class)
-@DataMongoTest
+@DataMongoTest(properties = {"spring.cloud.config.enabled=false"})
 public class PersistenceTest {
     @Autowired
     private CourseRepository repository;

@@ -24,7 +24,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static reactor.core.publisher.Mono.just;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment=RANDOM_PORT, properties = {"logging.level.se.magnus=DEBUG", "eureka.client.enabled=false", "spring.datasource.url=jdbc:h2:mem:rating-db"})
+@SpringBootTest(webEnvironment=RANDOM_PORT, properties = {
+		"logging.level.se.magnus=DEBUG",
+		"eureka.client.enabled=false",
+		"spring.cloud.config.enabled=false",
+		"spring.datasource.url=jdbc:h2:mem:review-db",
+		"server.error.include-message=always"})
 public class RatingServiceApplicationTests {
 
 	@Autowired
