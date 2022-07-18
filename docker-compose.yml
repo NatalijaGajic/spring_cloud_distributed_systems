@@ -5,17 +5,17 @@ services:
     build: microservices/course-service
     mem_limit: 350m
     environment:
-       - SPRING_PROFILES_ACTIVE=docker
-       - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
-       - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
+      - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
+      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
     depends_on:
       mongodb:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
 
-    
-    
+
+
   lecture:
     build: microservices/lecture-service
     mem_limit: 350m
@@ -29,7 +29,7 @@ services:
       rabbitmq:
         condition: service_healthy
 
-    
+
   rating:
     build: microservices/rating-service
     mem_limit: 350m
@@ -42,8 +42,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-            
-    
+
+
   user:
     build: microservices/user-service
     mem_limit: 350m
@@ -53,8 +53,8 @@ services:
       - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
     depends_on:
       - mongodb
-            
-            
+
+
   purchase:
     build: microservices/purchase-service
     mem_limit: 350m
@@ -64,8 +64,8 @@ services:
       - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
     depends_on:
       - mongodb
-            
-            
+
+
   course-composite:
     build: microservices/course-composite-service
     mem_limit: 350m
@@ -110,7 +110,7 @@ services:
       - SPRING_SECURITY_USER_NAME=${CONFIG_SERVER_USR}
       - SPRING_SECURITY_USER_PASSWORD=${CONFIG_SERVER_PWD}
     volumes:
-      - $PWD/config-repo:/config-repo
+      - ./config-repo:/config-repo
     build: spring-cloud/config-server
     mem_limit: 350m
 
