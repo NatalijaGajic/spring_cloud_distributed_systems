@@ -31,11 +31,11 @@ public interface CourseCompositeService {
             consumes = "application/json")
     Mono<Void>  createCompositeCourse(@RequestBody CourseAggregate body);
 
-
     /**
      * Sample usage: curl $HOST:$PORT/course-composite/1
-     *
      * @param courseId
+     * @param delay - number of seconds; causes the service to delay the response
+     * @param faultPercent - probability; causes the service to throw an exc
      * @return
      */
     @ApiOperation(
@@ -47,10 +47,13 @@ public interface CourseCompositeService {
             @ApiResponse(code = 422, message = "Unprocessable entity, input parameters caused the processing to fails. See response message for more information.")
     })
     @GetMapping(
-            value ="/course-composite/{courseId}",
-            produces = "application/json"
-    )
-    public Mono<CourseAggregate> getCourse(@PathVariable int courseId);
+            value    = "/course-composite/{courseId}",
+            produces = "application/json")
+    Mono<CourseAggregate> getCourseComposite(
+            @PathVariable int courseId,
+            @RequestParam(value = "delay", required = false, defaultValue = "0") int delay,
+            @RequestParam(value = "faultPercent", required = false, defaultValue = "0") int faultPercent
+    );
 
     /**
      * Sample usage:

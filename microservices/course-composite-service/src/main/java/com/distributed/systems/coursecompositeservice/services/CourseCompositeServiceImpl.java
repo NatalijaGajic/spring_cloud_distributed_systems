@@ -4,7 +4,9 @@ import com.distributed.systems.api.composite.course.*;
 import com.distributed.systems.api.core.course.Course;
 import com.distributed.systems.api.core.lecture.Lecture;
 import com.distributed.systems.api.core.rating.Rating;
+import com.distributed.systems.util.exceptions.NotFoundException;
 import com.distributed.systems.util.http.ServiceUtil;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextImpl;
@@ -75,15 +77,26 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
 
     }
 
+    /**
+     * Apply fallback logic when circuit breaker is open;
+     * Catch CallNotPermittedException (signals that the CircuitBreaker is HALF_OPEN or OPEN and a call is not permitted to be executed.)
+     *
+     * @param courseId
+     * @param delay - number of seconds; causes the service to delay the response
+     * @param faultPercent - probability; causes the service to throw an exc
+     * @return
+     */
+
     @Override
-    public Mono<CourseAggregate> getCourse(int courseId) {
+    public Mono<CourseAggregate> getCourseComposite(int courseId, int delay, int faultPercent) {
 
         LOG.debug("getCourse: lookup a course aggregate for courseId: {}", courseId);
 
         return Mono.zip(
                         values -> createCourseAggregate((SecurityContext) values[0], (Course) values[1], (List<Lecture>) values[2], (List<Rating>) values[3]),
                         ReactiveSecurityContextHolder.getContext().defaultIfEmpty(nullSC),
-                        integration.getCourse(courseId),
+                        integration.getCourse(courseId, delay, faultPercent)
+                                .onErrorReturn(CallNotPermittedException.class, getCourseFallbackValue(courseId)),
                         integration.getLectures(courseId).collectList(),
                         integration.getRatings(courseId).collectList())
                 .doOnError(ex -> LOG.warn("getCompositeCourse failed: {}", ex.toString()))
@@ -115,6 +128,20 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
         }
 
     }
+
+    private Course getCourseFallbackValue(int courseId) {
+
+        LOG.warn("Creating a fallback product for courseId = {}", courseId);
+
+        if (courseId == 13) {
+            String errMsg = "Course Id: " + courseId + " not found in fallback cache!";
+            LOG.warn(errMsg);
+            throw new NotFoundException(errMsg);
+        }
+
+        return new Course(courseId, "Fallback course", 0, null, serviceUtil.getServiceAddress());
+    }
+
 
     private CourseAggregate createCourseAggregate(SecurityContext sc, Course course, List<Lecture> lectures, List<Rating> ratings){
 

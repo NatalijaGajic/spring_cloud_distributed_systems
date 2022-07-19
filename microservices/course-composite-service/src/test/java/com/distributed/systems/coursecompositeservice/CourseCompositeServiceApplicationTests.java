@@ -24,6 +24,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static java.util.Collections.singletonList;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpStatus.*;
@@ -51,16 +53,16 @@ public class CourseCompositeServiceApplicationTests {
 	@Before
 	public void setUp() {
 
-		when(compositeIntegration.getCourse(COURSE_ID_OK)).
+		when(compositeIntegration.getCourse(eq(COURSE_ID_OK), anyInt(), anyInt())).
 				thenReturn(Mono.just(new Course(COURSE_ID_OK, "title", 5, "$", "mock-address")) );
 		when(compositeIntegration.getLectures(COURSE_ID_OK)).
 				thenReturn(Flux.fromIterable(singletonList(new Lecture(1, COURSE_ID_OK, "title", "details", 1, 7))));
 		when(compositeIntegration.getRatings(COURSE_ID_OK)).
 				thenReturn(Flux.fromIterable(singletonList(new Rating(1, COURSE_ID_OK, 2, 5, "content", "mock address"))));
 
-		when(compositeIntegration.getCourse(COURSE_ID_NOT_FOUND)).thenThrow(new NotFoundException("NOT FOUND: " + COURSE_ID_NOT_FOUND));
+		when(compositeIntegration.getCourse(eq(COURSE_ID_NOT_FOUND), anyInt(), anyInt())).thenThrow(new NotFoundException("NOT FOUND: " + COURSE_ID_NOT_FOUND));
 
-		when(compositeIntegration.getCourse(COURSE_ID_INVALID)).thenThrow(new InvalidInputException("INVALID: " + COURSE_ID_INVALID));
+		when(compositeIntegration.getCourse(eq(COURSE_ID_INVALID), anyInt(), anyInt())).thenThrow(new InvalidInputException("INVALID: " + COURSE_ID_INVALID));
 	}
 
 	@Test

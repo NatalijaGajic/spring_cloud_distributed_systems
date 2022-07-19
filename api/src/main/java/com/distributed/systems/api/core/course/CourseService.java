@@ -25,13 +25,18 @@ public interface CourseService {
     /**
      *
      * @param courseId
-     * @return
+     * @param delay - number of seconds; causes the service to delay the response
+     * @param faultPercent - probability; causes the service to throw an exc
+     * @return the course, if found, else null
      */
     @GetMapping(
             value = "/course/{courseId}",
             produces = "application/json"
     )
-    Mono<Course> getCourse(@PathVariable int courseId);
+    Mono<Course> getCourse(
+            @PathVariable int courseId,
+            @RequestParam(value = "delay", required = false, defaultValue = "0") int delay,
+            @RequestParam(value = "faultPercent", required = false, defaultValue = "0") int faultPercent);
 
     /**
      * Sample usage:

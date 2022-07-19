@@ -13,24 +13,27 @@ import com.distributed.systems.util.exceptions.InvalidInputException;
 import com.distributed.systems.util.exceptions.NotFoundException;
 import com.distributed.systems.util.http.HttpErrorInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.health.Health;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.Output;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
+import java.net.URI;
+import java.time.Duration;
 
 import static com.distributed.systems.api.event.Event.Type.CREATE;
 import static com.distributed.systems.api.event.Event.Type.DELETE;
@@ -50,6 +53,7 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     private final WebClient.Builder webClientBuilder;
     private  WebClient webClient;
     private MessageSources messageSources;
+    private final int courseServiceTimeoutSec;
 
     public interface MessageSources {
 
@@ -71,12 +75,14 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     public CourseCompositeIntegration(
             ObjectMapper objectMapper,
             MessageSources messageSources,
-            WebClient.Builder webClientBuilder) {
+            WebClient.Builder webClientBuilder,
+            @Value("${app.course-service.timeoutSec}") int courseServiceTimeoutSec) {
 
         this.objectMapper = objectMapper;
         this.messageSources = messageSources;
         this.webClientBuilder = webClientBuilder;
 
+        this.courseServiceTimeoutSec = courseServiceTimeoutSec;
     }
 
     @Override
@@ -85,12 +91,25 @@ public class CourseCompositeIntegration implements CourseService, LectureService
         return body;
     }
 
+    /**
+     * The circuit breaker is triggered by an exception, not a timeout; using timeout method
+     *
+     * @param courseId
+     * @param delay - number of seconds; causes the service to delay the response
+     * @param faultPercent - probability; causes the service to throw an exc
+     * @return
+     */
+    @Retry(name = "course")
+    @CircuitBreaker(name = "course")
     @Override
-    public Mono<Course> getCourse(int courseId) {
-        String url = courseServiceUrl + "/course/" + courseId;
+    public Mono<Course> getCourse(int courseId, int delay, int faultPercent) {
+        URI url = UriComponentsBuilder.fromUriString(courseServiceUrl + "/course/{courseId}?delay={delay}&faultPercent={faultPercent}").build(courseId, delay, faultPercent);
         LOG.debug("Will call the getCourse API on URL: {}", url);
 
-        return getWebClient().get().uri(url).retrieve().bodyToMono(Course.class).log().onErrorMap(WebClientResponseException.class, ex -> handleException(ex));
+        return getWebClient().get().uri(url)
+                .retrieve().bodyToMono(Course.class).log()
+                .onErrorMap(WebClientResponseException.class, ex -> handleException(ex))
+                .timeout(Duration.ofSeconds(courseServiceTimeoutSec));
     }
 
     @Override
