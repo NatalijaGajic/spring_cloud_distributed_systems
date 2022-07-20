@@ -33,6 +33,21 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  author:
+    build: microservices/author-service
+    mem_limit: 350m
+    networks:
+      - my-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
+      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
 
   rating:
     build: microservices/rating-service
@@ -49,31 +64,6 @@ services:
       rabbitmq:
         condition: service_healthy
 
-
-  user:
-    build: microservices/user-service
-    mem_limit: 350m
-    networks:
-      - my-network
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
-      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
-    depends_on:
-      - mongodb
-
-
-  purchase:
-    build: microservices/purchase-service
-    mem_limit: 350m
-    networks:
-      - my-network
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
-      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
-    depends_on:
-      - mongodb
 
 
   course-composite:

@@ -1,5 +1,7 @@
 package com.distributed.systems.coursecompositeservice.services;
 
+import com.distributed.systems.api.core.author.Author;
+import com.distributed.systems.api.core.author.AuthorService;
 import com.distributed.systems.api.core.course.Course;
 import com.distributed.systems.api.core.course.CourseService;
 import com.distributed.systems.api.core.lecture.Lecture;
@@ -41,7 +43,7 @@ import static reactor.core.publisher.Flux.empty;
 
 @Component
 @EnableBinding(CourseCompositeIntegration.MessageSources.class)
-public class CourseCompositeIntegration implements CourseService, LectureService, RatingService, UserService {
+public class CourseCompositeIntegration implements CourseService, LectureService, RatingService, AuthorService {
 
     private static final Logger LOG = LoggerFactory.getLogger(CourseCompositeIntegration.class);
     private final ObjectMapper objectMapper;
@@ -50,16 +52,20 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     private final String courseServiceUrl = "http://course";
     private final String lectureServiceUrl = "http://lecture";
     private final String ratingServiceUrl = "http://rating";
+    private final String authorServiceUrl = "http://author";
     private final WebClient.Builder webClientBuilder;
     private  WebClient webClient;
     private MessageSources messageSources;
     private final int courseServiceTimeoutSec;
+
+
 
     public interface MessageSources {
 
         String OUTPUT_COURSES= "output-courses";
         String OUTPUT_LECTURES= "output-lectures";
         String OUTPUT_RATINGS = "output-ratings";
+        String OUTPUT_AUTHORS = "output-authors";
 
         @Output(OUTPUT_COURSES)
         MessageChannel outputCourses();
@@ -69,6 +75,9 @@ public class CourseCompositeIntegration implements CourseService, LectureService
 
         @Output(OUTPUT_RATINGS)
         MessageChannel outputRatings();
+
+        @Output(OUTPUT_AUTHORS)
+        MessageChannel outputAuthors();
     }
 
     @Autowired
@@ -165,39 +174,26 @@ public class CourseCompositeIntegration implements CourseService, LectureService
     }
 
     @Override
-    public User createUser(User body) {
-        return null;
+    public Author createAuthor(Author body) {
+        messageSources.outputAuthors().send(MessageBuilder.withPayload(new Event(CREATE, body.getCourseId(), body)).build());
+        return body;
     }
 
     @Override
-    public User getUser(int userId) {
-        /*try{
-            String url = courseServiceUrl + userId;
-            LOG.debug("Will call getUser API on URL: {}", url);
-            User user = restTemplate.getForObject(url, User.class);
-            LOG.debug("Found a user with id: {}", user.getUserId());
-            return user;
+    public Flux<Author> getAuthors(int courseId) {
+        String url = authorServiceUrl + "/author?courseId=" + courseId;
 
-        }catch(HttpClientErrorException ex){ //TODO: shouldn't throw exceptions
-            switch (ex.getStatusCode()){
-                case NOT_FOUND:
-                    throw new NotFoundException((getErrorMessage(ex)));
-                case UNPROCESSABLE_ENTITY:
-                    throw new InvalidInputException(getErrorMessage(ex));
-                default:
-                    LOG.warn("Got a unexpected HTTP error: {}, will rethrow it", ex.getStatusCode());
-                    LOG.warn("Error body: {}", ex.getResponseBodyAsString());
-                    throw ex;
-            }
+        LOG.debug("Will call the getAuthors API on URL: {}", url);
 
-        }*/
-        return null;
+        // Return an empty result if something goes wrong to make it possible for the composite service to return partial responses
+        return getWebClient().get().uri(url).retrieve().bodyToFlux(Author.class).log().onErrorResume(error -> empty());
     }
 
     @Override
-    public void deleteUser(int userId) {
-
+    public void deleteAuthors(int courseId) {
+        messageSources.outputAuthors().send(MessageBuilder.withPayload(new Event(DELETE, courseId, null)).build());
     }
+
 
     private WebClient getWebClient() {
         if (webClient == null) {

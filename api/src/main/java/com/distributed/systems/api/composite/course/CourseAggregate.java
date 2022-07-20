@@ -21,10 +21,11 @@ public class CourseAggregate {
     private List<RatingSummary> ratings;
     private List<LectureSummary> lectures;
     private ServicesAddresses serviceAddress;
+    private List<AuthorSummary> authors;
 
     private CourseAggregate(){}
 
-    public CourseAggregate(int courseId, String courseTitle, String courseDetails, String language, Date courseCreatedDate, Date getCourseLastUpdatedDate, double averageRating, int numberOfStudents, double price, List<RatingSummary> ratings, List<LectureSummary> lectures, ServicesAddresses serviceAddress) {
+    public CourseAggregate(int courseId, String courseTitle, String courseDetails, String language, Date courseCreatedDate, Date getCourseLastUpdatedDate, double averageRating, int numberOfStudents, double price, List<RatingSummary> ratings, List<LectureSummary> lectures, List<AuthorSummary> authors, ServicesAddresses serviceAddress) {
         this.courseId = courseId;
         this.courseTitle = courseTitle;
         this.courseDetails = courseDetails;
@@ -36,6 +37,7 @@ public class CourseAggregate {
         this.price = price;
         this.ratings = ratings;
         this.lectures = lectures;
+        this.authors = authors;
         this.serviceAddress = serviceAddress;
     }
 
@@ -46,13 +48,14 @@ public class CourseAggregate {
         this.language = language;
     }
 
-    public CourseAggregate(int courseId, String courseTitle, String courseDetails, String language, List<RatingSummary> ratings, List<LectureSummary> lectures) {
+    public CourseAggregate(int courseId, String courseTitle, String courseDetails, String language, List<RatingSummary> ratings, List<LectureSummary> lectures, List<AuthorSummary> authors) {
         this.courseId = courseId;
         this.courseTitle = courseTitle;
         this.courseDetails = courseDetails;
         this.language = language;
         this.ratings = ratings;
         this.lectures = lectures;
+        this.authors = authors;
     }
 
     public int getCourseId() {
@@ -159,4 +162,11 @@ public class CourseAggregate {
         this.priceCurrency = priceCurrency;
     }
 
+    public List<AuthorSummary> getAuthors() {
+        return authors;
+    }
+
+    public void setAuthors(List<AuthorSummary> authors) {
+        this.authors = authors;
+    }
 }

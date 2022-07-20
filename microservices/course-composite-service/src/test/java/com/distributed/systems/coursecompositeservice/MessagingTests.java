@@ -1,5 +1,6 @@
 package com.distributed.systems.coursecompositeservice;
 
+import com.distributed.systems.api.composite.course.AuthorSummary;
 import com.distributed.systems.api.composite.course.CourseAggregate;
 import com.distributed.systems.api.composite.course.LectureSummary;
 import com.distributed.systems.api.composite.course.RatingSummary;
@@ -90,7 +91,8 @@ public class MessagingTests {
 
         CourseAggregate composite = new CourseAggregate(1, "title", "details", "eng",
                 singletonList(new RatingSummary(1, 1, 2, 3, "text", null)),
-                singletonList(new LectureSummary(1, 1, "title", "details", 1, 7)));
+                singletonList(new LectureSummary(1, 1, "title", "details", 1, 7)),
+                singletonList(new AuthorSummary(1, "fullName", "country", 1)));
 
         postAndVerifyCourse(composite, OK);
 

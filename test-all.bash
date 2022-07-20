@@ -151,6 +151,10 @@ function setupTestdata() {
    {"ratingCreatedDate": "2022-07-05T11:40:37.262Z","ratingId": 13,"starRating": 0,"text": "string","userId": 0},
    {"ratingCreatedDate": "2022-07-05T11:40:37.262Z","ratingId": 14,"starRating": 0,"text": "string","userId": 1},
    {"ratingCreatedDate": "2022-07-05T11:40:37.262Z","ratingId": 15,"starRating": 0,"text": "string","userId": 2}
+], "authors":[
+   {"authorId": 13, "fullName": "string", "country": "string", "numberOfLectures": 1},
+   {"authorId": 14, "fullName": "string", "country": "string", "numberOfLectures": 1},
+   {"authorId": 15, "fullName": "string", "country": "string", "numberOfLectures": 1}
 ]}'
     recreateComposite "$CRS_ID_LECS_RATS" "$body"
 
@@ -247,6 +251,7 @@ assertCurl 200 "curl -k https://$HOST:${PORT}/course-composite/1  $AUTH -s"
 assertEqual 1 $(echo $RESPONSE | jq .courseId)
 assertEqual 3 $(echo $RESPONSE | jq ".lectures | length")
 assertEqual 3 $(echo $RESPONSE | jq ".ratings | length")
+assertEqual 3 $(echo $RESPONSE | jq ".authors | length")
 
 # Verify that a 404 (Not Found) error is returned for a non existing courseId (13)
 assertCurl 404 "curl -k https://$HOST:${PORT}/course-composite/13 $AUTH -s"
@@ -256,6 +261,7 @@ assertCurl 200 "curl -k https://$HOST:${PORT}/course-composite/123 $AUTH -s"
 assertEqual 123 $(echo $RESPONSE | jq .courseId)
 assertEqual 0 $(echo $RESPONSE | jq ".lectures | length")
 assertEqual 0 $(echo $RESPONSE | jq ".ratings | length")
+assertEqual 0 $(echo $RESPONSE | jq ".authors | length")
 
 # Verify that a 422 (Unprocessable Entity) error is returned for a courseId that is out of range (-1)
 assertCurl 422 "curl -k https://$HOST:${PORT}/course-composite/-1 $AUTH -s"

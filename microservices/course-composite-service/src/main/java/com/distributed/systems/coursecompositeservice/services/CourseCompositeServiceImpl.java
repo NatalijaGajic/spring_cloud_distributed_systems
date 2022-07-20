@@ -1,6 +1,7 @@
 package com.distributed.systems.coursecompositeservice.services;
 
 import com.distributed.systems.api.composite.course.*;
+import com.distributed.systems.api.core.author.Author;
 import com.distributed.systems.api.core.course.Course;
 import com.distributed.systems.api.core.lecture.Lecture;
 import com.distributed.systems.api.core.rating.Rating;
@@ -68,6 +69,13 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
                 });
             }
 
+            if (body.getAuthors() != null) {
+                body.getAuthors().forEach(l -> {
+                    Author author = new Author(l.getAuthorId(), body.getCourseId(), l.getFullName(), l.getCountry(), l.getNumberOfLectures() );
+                    integration.createAuthor(author);
+                });
+            }
+
             LOG.debug("createCompositeCourse: composite entites created for courseId: {}", body.getCourseId());
 
         } catch (RuntimeException re) {
@@ -93,12 +101,13 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
         LOG.debug("getCourse: lookup a course aggregate for courseId: {}", courseId);
 
         return Mono.zip(
-                        values -> createCourseAggregate((SecurityContext) values[0], (Course) values[1], (List<Lecture>) values[2], (List<Rating>) values[3]),
+                        values -> createCourseAggregate((SecurityContext) values[0], (Course) values[1], (List<Lecture>) values[2], (List<Rating>) values[3], (List<Author>) values[4]),
                         ReactiveSecurityContextHolder.getContext().defaultIfEmpty(nullSC),
                         integration.getCourse(courseId, delay, faultPercent)
                                 .onErrorReturn(CallNotPermittedException.class, getCourseFallbackValue(courseId)),
                         integration.getLectures(courseId).collectList(),
-                        integration.getRatings(courseId).collectList())
+                        integration.getRatings(courseId).collectList(),
+                        integration.getAuthors(courseId).collectList())
                 .doOnError(ex -> LOG.warn("getCompositeCourse failed: {}", ex.toString()))
                 .log();
     }
@@ -119,6 +128,8 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
             integration.deleteLectures(courseId);
 
             integration.deleteRatings(courseId);
+
+            integration.deleteAuthors(courseId);
 
             LOG.debug("deleteCompositeCourse: aggregate entities deleted for courseId: {}", courseId);
 
@@ -143,7 +154,7 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
     }
 
 
-    private CourseAggregate createCourseAggregate(SecurityContext sc, Course course, List<Lecture> lectures, List<Rating> ratings){
+    private CourseAggregate createCourseAggregate(SecurityContext sc, Course course, List<Lecture> lectures, List<Rating> ratings, List<Author> authors){
 
         logAuthorizationInfo(sc);
 
@@ -165,10 +176,19 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
                         l.getDurationInMinutes()
                 )).collect(Collectors.toList());
 
+        List<AuthorSummary> authorSummaries = authors == null? null :
+                authors.stream().map(a -> new AuthorSummary(
+                        a.getAuthorId(),
+                        a.getFullName(),
+                        a.getCountry(),
+                        a.getNumberOfLectures()
+                )).collect(Collectors.toList());
+
         String courseAddress = course.getServiceAddress();
         String ratingsAddress = (ratings != null && ratings.size() > 0)? ratings.get(0).getServiceAddress():"";
         String lecturesAddress = (lectures != null && lectures.size() > 0)? lectures.get(0).getServiceAddress():"";
-        ServicesAddresses servicesAddresses = new ServicesAddresses(courseAddress, ratingsAddress, lecturesAddress, serviceUtil.getServiceAddress());
+        String authorsAdresses = (authors != null && authors.size() > 0)? authors.get(0).getServiceAddress():"";
+        ServicesAddresses servicesAddresses = new ServicesAddresses(courseAddress, ratingsAddress, lecturesAddress, authorsAdresses, serviceUtil.getServiceAddress());
 
 
         return new CourseAggregate(
@@ -183,6 +203,7 @@ public class CourseCompositeServiceImpl implements CourseCompositeService {
                 course.getPrice(),
                 ratingsSummaries,
                 lecturesSummaries,
+                authorSummaries,
                 servicesAddresses
         );
     }

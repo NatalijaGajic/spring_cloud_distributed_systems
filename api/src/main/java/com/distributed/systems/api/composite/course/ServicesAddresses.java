@@ -5,6 +5,7 @@ public class ServicesAddresses {
     private final String crs;
     private final String rat;
     private final String lec;
+    private final String aut;
     private String usr;
     private String pur;
 
@@ -15,21 +16,24 @@ public class ServicesAddresses {
         this.usr = null;
         this.pur = null;
         this.cmp = null;
+        this.aut = null;
     }
 
-    public ServicesAddresses(String crs, String rat, String lec, String usr, String pur, String cmp) {
+    public ServicesAddresses(String crs, String rat, String lec, String usr, String pur, String aut, String cmp) {
         this.crs = crs;
         this.rat = rat;
         this.lec = lec;
         this.usr = usr;
         this.pur = pur;
+        this.aut = aut;
         this.cmp = cmp;
     }
 
-    public ServicesAddresses(String crs, String rat, String lec,String cmp) {
+    public ServicesAddresses(String crs, String rat, String lec, String aut, String cmp) {
         this.crs = crs;
         this.rat = rat;
         this.lec = lec;
+        this.aut = aut;
         this.cmp = cmp;
     }
 

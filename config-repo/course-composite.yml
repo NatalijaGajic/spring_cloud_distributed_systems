@@ -72,6 +72,10 @@ spring.cloud.stream:
       destination: ratings
       producer:
         required-groups: auditGroup
+    output-authors:
+      destination: authors
+      producer:
+        required-groups: auditGroup
 
 spring.cloud.stream.kafka.binder:
   brokers: 127.0.0.1
